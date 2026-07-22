@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+/* ------------------- */
+/* GOOGLE FONTS */
+/* ------------------- */
+
+body {
+  font-family: "Poppins", sans-serif;
+  background-color: #fffbf5;
+  color: #312e2a;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+/* ------------------- */
+/* HEADINGS */
+/* ------------------- */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Cormorant Garamond", serif;
+}
+
+/* ------------------- */
+/* REUSABLE CLASSES */
+/* ------------------- */
+
+.section-padding {
+  @apply py-10 px-5 md:px-10 lg:px-16;
+}
+
+.container-width {
+  @apply max-w-7xl mx-auto;
+}
+
+.section-bg {
+  @apply bg-[#FAF6EE];
+}
+
+.primary-btn {
+  @apply px-7 py-3 rounded-full font-semibold transition-all duration-300;
+}
+
+.secondary-btn {
+  @apply px-7 py-3 rounded-full font-semibold transition-all duration-300;
+}
+
+
+/* ------------------- */
+/* CUSTOM SCROLLBAR */
+/* ------------------- */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4d9f38;
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-track {
+  background: #faf6ee;
+}
+
+
+/* ------------------- */
+/* SELECTION COLOR */
+/* ------------------- */
+
+::selection {
+  background: #f4b400;
+  color: white;
+}
+
+
+/* ------------------- */
+/* SMOOTH TRANSITION */
+/* ------------------- */
+
+* {
+  transition: all 0.2s ease;
+}
+
+
+
+
+/* toopbar code  */
+@keyframes shine {
+  0%{
+    transform:translateX(-120%);
+  }
+  100%{
+    transform:translateX(220%);
+  }
+}
+
+.shine{
+    position:absolute;
+    inset:0;
+    overflow:hidden;
+}
+
+.shine::before{
+    content:"";
+    position:absolute;
+    width:80px;
+    height:100%;
+    background:linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,.4),
+        transparent
+    );
+    animation:shine 4s linear infinite;
+}
