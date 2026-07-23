@@ -28,10 +28,10 @@ const quickLinks = [
 
 const products = [
   { label: "Products", to: "/products" },
-  { label: "Sesame Oil", to: "/products/sesame-oil" },
-  { label: "Coconut Oil", to: "/products/coconut-oil" },
-  { label: "Mustard Oil", to: "/products/mustard-oil" },
-  { label: "Sunflower Oil", to: "/products/sunflower-oil" },
+  { label: "Sesame Oil",to: "/products" },
+  { label: "Coconut Oil", to: "/products"},
+  { label: "Mustard Oil", to: "/products" },
+  { label: "Sunflower Oil",to: "/products" },
 ];
 
 const socials = [
@@ -51,6 +51,10 @@ const containerVariants = {
 };
 
 const Footer = () => {
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  };
+
   return (
     <footer className="relative bg-white text-[#312E2A] overflow-hidden border-t border-[#7A2418]/10">
       {/* Ambient glows */}
@@ -121,6 +125,7 @@ className="relative max-w-7xl mx-auto px-5 pt-10 pb-8 sm:pt-12 sm:pb-6"      >
                 <li key={i}>
                   <Link
                     to={item.to}
+                    onClick={scrollToTop}
                     className="group flex items-center justify-center lg:justify-start gap-2 text-gray-500 hover:text-[#7A2418] transition-colors duration-200 text-sm sm:text-base"
                   >
                     <span
@@ -149,6 +154,7 @@ className="relative max-w-7xl mx-auto px-5 pt-10 pb-8 sm:pt-12 sm:pb-6"      >
                 <li key={i}>
                   <Link
                     to={item.to}
+                    onClick={scrollToTop}
                     className="group flex items-center justify-center lg:justify-start gap-2 text-gray-500 hover:text-[#7A2418] transition-colors duration-200 text-sm sm:text-base"
                   >
                     <span

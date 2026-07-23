@@ -13,7 +13,41 @@ import {
   Phone,
   Eye,
   EyeOff,
+  Droplet,
+  ShieldCheck,
 } from "lucide-react";
+
+/*
+  Design tokens
+  -------------
+  Ink      #2B2420  – body text
+  Maroon   #6B1E1E  – brand primary (kumkum / sindoor red)
+  Forest   #2F7A38  – organic / success accent
+  Mustard  #C98A2B  – oil-gold secondary accent
+  Cream    #FBF3E7  – page background
+  Sand     #ECDFC9  – hairline borders
+  Paper    #FDF8EF  – input / card fill
+
+  Display face: Fraunces (warm, artisanal serif — echoes hand-pressed,
+  small-batch character). Body/UI face: Inter.
+
+  Signature motif: the "ghani wheel" — concentric rings + a droplet,
+  a nod to the traditional stone oil press. Used as the loading state,
+  the avatar ring, and the auth panel's centerpiece.
+*/
+
+const GhaniMark = ({ size = 56, spin = false }) => (
+  <div
+    className={`relative shrink-0 ${spin ? "animate-spin" : ""}`}
+    style={{ width: size, height: size, animationDuration: "6s" }}
+  >
+    <div className="absolute inset-0 rounded-full border-[3px] border-[#C98A2B]/40" />
+    <div className="absolute inset-[6px] rounded-full border-[3px] border-[#2F7A38]/50" />
+    <div className="absolute inset-0 flex items-center justify-center">
+      <Droplet size={size * 0.32} className="text-[#6B1E1E] fill-[#6B1E1E]" />
+    </div>
+  </div>
+);
 
 const Profile = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -48,12 +82,12 @@ const Profile = () => {
     { id: "settings", label: "Account Settings", icon: Settings },
   ];
 
-  const statusColor = (status) =>
+  const statusStyle = (status) =>
     status === "Delivered"
-      ? "bg-[#E4F3E1] text-[#2F7A38]"
+      ? { bar: "bg-[#2F7A38]", chip: "bg-[#E4F3E1] text-[#2F7A38]" }
       : status === "Cancelled"
-      ? "bg-[#FBE7E7] text-[#B23A3A]"
-      : "bg-[#FBEAD0] text-[#8A4B12]";
+      ? { bar: "bg-[#B23A3A]", chip: "bg-[#FBE7E7] text-[#B23A3A]" }
+      : { bar: "bg-[#C98A2B]", chip: "bg-[#FBEAD0] text-[#8A4B12]" };
 
   const handleAuthChange = (e) => {
     setAuthForm({ ...authForm, [e.target.name]: e.target.value });
@@ -75,51 +109,85 @@ const Profile = () => {
     setAuthForm({ name: "", phone: "", email: "", password: "" });
   };
 
+  const fonts = (
+    <style>{`
+      @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap');
+      .font-display { font-family: 'Fraunces', serif; font-optical-sizing: auto; }
+      .font-body { font-family: 'Inter', sans-serif; }
+    `}</style>
+  );
+
   /* ---------------- LOGIN / SIGNUP SCREEN ---------------- */
   if (!isLoggedIn) {
     return (
-      <section className="bg-[#FBF3E7] min-h-screen flex items-center justify-center py-14 px-5">
-        <div className="w-full max-w-md">
+      <section className="font-body bg-[#FBF3E7] min-h-screen flex items-center justify-center py-10 px-5">
+        {fonts}
+        <div className="w-full max-w-4xl rounded-[28px] overflow-hidden shadow-[0_30px_70px_rgba(107,30,30,0.12)] grid grid-cols-1 md:grid-cols-2 border border-[#ECDFC9]">
 
-          {/* Logo / brand mark */}
-          <div className="text-center mb-6">
-            <div className="w-14 h-14 mx-auto rounded-full bg-[#5C1A1A] text-white flex items-center justify-center font-bold text-xl mb-3">
-              S
+          {/* Brand panel */}
+          <div className="relative bg-[#6B1E1E] text-white p-8 md:p-10 flex flex-col justify-between overflow-hidden min-h-[220px] md:min-h-0">
+            <div
+              className="absolute inset-0 opacity-[0.08]"
+              style={{
+                backgroundImage:
+                  "radial-gradient(circle at 20% 20%, white 1px, transparent 1px), radial-gradient(circle at 60% 70%, white 1px, transparent 1px)",
+                backgroundSize: "26px 26px, 34px 34px",
+              }}
+            />
+            <div className="relative">
+              <div className="flex items-center gap-3">
+                <GhaniMark size={44} />
+                <span className="font-display text-lg tracking-wide">Samarth Organic</span>
+              </div>
+
+              <h1 className="font-display text-3xl md:text-[2.35rem] leading-[1.15] mt-8 md:mt-14">
+                Pressed slow.
+                <br />
+                Delivered fresh.
+              </h1>
+              <p className="text-white/70 text-sm mt-4 max-w-xs">
+                Sign in to track your orders, manage addresses and revisit
+                the oils you love — cold-pressed the traditional way.
+              </p>
             </div>
-            <h1 className="text-2xl font-bold text-[#5C1A1A]">
-              {authMode === "login" ? "Welcome back" : "Create your account"}
-            </h1>
-            <p className="text-sm text-[#8a8178] mt-1">
-              {authMode === "login"
-                ? "Login to view your orders, wishlist and more"
-                : "Join Samarth Organic for a personalised experience"}
-            </p>
+
+            <div className="relative hidden md:flex items-center gap-2 text-white/60 text-xs mt-10">
+              <ShieldCheck size={15} />
+              Your details are kept private and secure.
+            </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-[#f2e8d8] shadow-sm p-6 md:p-8">
-
-            {/* Tab switch */}
-            <div className="flex bg-[#FBF3E7] rounded-full p-1 mb-6">
+          {/* Form panel */}
+          <div className="bg-white p-8 md:p-10">
+            <div className="flex bg-[#FBF3E7] rounded-full p-1 mb-7">
               <button
                 onClick={() => setAuthMode("login")}
-                className={`flex-1 py-2 rounded-full text-sm font-semibold transition-colors ${
-                  authMode === "login" ? "bg-[#5C1A1A] text-white" : "text-[#5C1A1A]"
+                className={`flex-1 py-2.5 rounded-full text-sm font-semibold transition-colors ${
+                  authMode === "login" ? "bg-[#6B1E1E] text-white" : "text-[#6B1E1E]"
                 }`}
               >
                 Login
               </button>
               <button
                 onClick={() => setAuthMode("signup")}
-                className={`flex-1 py-2 rounded-full text-sm font-semibold transition-colors ${
-                  authMode === "signup" ? "bg-[#5C1A1A] text-white" : "text-[#5C1A1A]"
+                className={`flex-1 py-2.5 rounded-full text-sm font-semibold transition-colors ${
+                  authMode === "signup" ? "bg-[#6B1E1E] text-white" : "text-[#6B1E1E]"
                 }`}
               >
                 Sign Up
               </button>
             </div>
 
-            <form onSubmit={handleAuthSubmit} className="space-y-4">
+            <h2 className="font-display text-2xl text-[#2B2420] mb-1">
+              {authMode === "login" ? "Welcome back" : "Create your account"}
+            </h2>
+            <p className="text-sm text-[#8a8178] mb-6">
+              {authMode === "login"
+                ? "Enter your details to continue."
+                : "Takes less than a minute."}
+            </p>
 
+            <form onSubmit={handleAuthSubmit} className="space-y-4">
               {authMode === "signup" && (
                 <div className="relative">
                   <User size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#b0a696]" />
@@ -130,7 +198,7 @@ const Profile = () => {
                     placeholder="Full name"
                     value={authForm.name}
                     onChange={handleAuthChange}
-                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#3FA34D] focus:ring-4 focus:ring-[#3FA34D]/10 outline-none transition-all"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all"
                   />
                 </div>
               )}
@@ -144,7 +212,7 @@ const Profile = () => {
                   placeholder="Phone number"
                   value={authForm.phone}
                   onChange={handleAuthChange}
-                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#3FA34D] focus:ring-4 focus:ring-[#3FA34D]/10 outline-none transition-all"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all"
                 />
               </div>
 
@@ -158,7 +226,7 @@ const Profile = () => {
                     placeholder="Email address"
                     value={authForm.email}
                     onChange={handleAuthChange}
-                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#3FA34D] focus:ring-4 focus:ring-[#3FA34D]/10 outline-none transition-all"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all"
                   />
                 </div>
               )}
@@ -172,7 +240,7 @@ const Profile = () => {
                   placeholder="Password"
                   value={authForm.password}
                   onChange={handleAuthChange}
-                  className="w-full pl-11 pr-11 py-3 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#3FA34D] focus:ring-4 focus:ring-[#3FA34D]/10 outline-none transition-all"
+                  className="w-full pl-11 pr-11 py-3 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all"
                 />
                 <button
                   type="button"
@@ -186,7 +254,7 @@ const Profile = () => {
 
               {authMode === "login" && (
                 <div className="text-right">
-                  <button type="button" className="text-xs font-semibold text-[#3FA34D] hover:text-[#2F7A38]">
+                  <button type="button" className="text-xs font-semibold text-[#2F7A38] hover:text-[#255f2c]">
                     Forgot password?
                   </button>
                 </div>
@@ -195,7 +263,7 @@ const Profile = () => {
               <button
                 type="submit"
                 disabled={authLoading}
-                className="w-full bg-[#3FA34D] hover:bg-[#358c42] text-white font-semibold py-3 rounded-full transition-colors flex items-center justify-center gap-2 disabled:opacity-80"
+                className="w-full bg-[#2F7A38] hover:bg-[#255f2c] text-white font-semibold py-3 rounded-full transition-colors flex items-center justify-center gap-2 disabled:opacity-80"
               >
                 {authLoading ? (
                   <>
@@ -214,14 +282,14 @@ const Profile = () => {
               {authMode === "login" ? (
                 <>
                   Don't have an account?{" "}
-                  <button onClick={() => setAuthMode("signup")} className="font-semibold text-[#5C1A1A]">
+                  <button onClick={() => setAuthMode("signup")} className="font-semibold text-[#6B1E1E]">
                     Sign up
                   </button>
                 </>
               ) : (
                 <>
                   Already have an account?{" "}
-                  <button onClick={() => setAuthMode("login")} className="font-semibold text-[#5C1A1A]">
+                  <button onClick={() => setAuthMode("login")} className="font-semibold text-[#6B1E1E]">
                     Login
                   </button>
                 </>
@@ -235,20 +303,34 @@ const Profile = () => {
 
   /* ---------------- LOGGED-IN PROFILE DASHBOARD ---------------- */
   return (
-    <section className="bg-[#FBF3E7] min-h-screen py-10 md:py-16">
+    <section className="font-body bg-[#FBF3E7] min-h-screen py-10 md:py-16">
+      {fonts}
       <div className="max-w-6xl mx-auto px-5">
 
         {/* User header card */}
-        <div className="bg-white rounded-2xl border border-[#f2e8d8] shadow-sm p-6 md:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-5 mb-8">
-          <div className="w-20 h-20 rounded-full bg-[#5C1A1A] text-white flex items-center justify-center text-2xl font-bold shrink-0">
+        <div className="relative bg-[#6B1E1E] rounded-2xl shadow-sm p-6 md:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-5 mb-8 overflow-hidden">
+          <div
+            className="absolute inset-0 opacity-[0.06]"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 85% 15%, white 1px, transparent 1px)",
+              backgroundSize: "22px 22px",
+            }}
+          />
+          <div className="relative w-20 h-20 rounded-full ring-4 ring-white/20 bg-white/10 text-white flex items-center justify-center text-2xl font-display font-semibold shrink-0">
             {user.name.split(" ").map((n) => n[0]).join("")}
           </div>
-          <div className="flex-1 text-center sm:text-left">
-            <h1 className="text-xl md:text-2xl font-bold text-[#5C1A1A]">{user.name}</h1>
-            <p className="text-sm text-[#8a8178] mt-1">{user.phone} · {user.email}</p>
-            <p className="text-xs text-[#a89f92] mt-1">{user.joined}</p>
+          <div className="relative flex-1 text-center sm:text-left">
+            <div className="flex items-center justify-center sm:justify-start gap-2">
+              <h1 className="font-display text-xl md:text-2xl font-semibold text-white">{user.name}</h1>
+              <span className="text-[10px] uppercase tracking-wider font-semibold bg-[#C98A2B] text-white px-2.5 py-1 rounded-full">
+                Gold Member
+              </span>
+            </div>
+            <p className="text-sm text-white/70 mt-1">{user.phone} · {user.email}</p>
+            <p className="text-xs text-white/50 mt-1">{user.joined}</p>
           </div>
-          <button className="flex items-center gap-1.5 border border-[#3FA34D] text-[#3FA34D] hover:bg-[#3FA34D] hover:text-white font-semibold text-sm px-4 py-2 rounded-full transition-colors">
+          <button className="relative flex items-center gap-1.5 border border-white/40 text-white hover:bg-white hover:text-[#6B1E1E] font-semibold text-sm px-4 py-2 rounded-full transition-colors">
             <Edit2 size={15} /> Edit Profile
           </button>
         </div>
@@ -262,8 +344,10 @@ const Profile = () => {
                 <button
                   key={id}
                   onClick={() => setActiveTab(id)}
-                  className={`w-full flex items-center justify-between px-5 py-4 text-sm font-semibold border-b border-[#f2e8d8] last:border-0 transition-colors ${
-                    activeTab === id ? "bg-[#E4F3E1] text-[#2F7A38]" : "text-[#5C1A1A] hover:bg-[#FBF3E7]"
+                  className={`w-full flex items-center justify-between px-5 py-4 text-sm font-semibold border-b border-[#f2e8d8] last:border-0 transition-colors border-l-[3px] ${
+                    activeTab === id
+                      ? "bg-[#FBF3E7] text-[#2F7A38] border-l-[#2F7A38]"
+                      : "text-[#5C1A1A] border-l-transparent hover:bg-[#FBF3E7]/60"
                   }`}
                 >
                   <span className="flex items-center gap-3">
@@ -274,7 +358,7 @@ const Profile = () => {
               ))}
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-5 py-4 text-sm font-semibold text-[#B23A3A] hover:bg-[#FBE7E7] transition-colors"
+                className="w-full flex items-center gap-3 px-5 py-4 text-sm font-semibold text-[#B23A3A] hover:bg-[#FBE7E7] transition-colors border-l-[3px] border-l-transparent"
               >
                 <LogOut size={18} /> Logout
               </button>
@@ -285,22 +369,28 @@ const Profile = () => {
           <div className="lg:col-span-3">
             {activeTab === "orders" && (
               <div className="bg-white rounded-2xl border border-[#f2e8d8] shadow-sm p-6">
-                <h2 className="font-bold text-lg text-[#5C1A1A] mb-5">My Orders</h2>
+                <h2 className="font-display text-lg font-semibold text-[#2B2420] mb-5">My Orders</h2>
                 <div className="space-y-4">
-                  {orders.map((o) => (
-                    <div key={o.id} className="flex flex-col sm:flex-row sm:items-center justify-between border border-[#f2e8d8] rounded-xl p-4 gap-2">
-                      <div>
-                        <p className="font-semibold text-[#2B2B28]">{o.id} <span className="text-xs text-[#a89f92] font-normal">· {o.date}</span></p>
-                        <p className="text-sm text-[#8a8178]">{o.items}</p>
+                  {orders.map((o) => {
+                    const s = statusStyle(o.status);
+                    return (
+                      <div key={o.id} className="flex items-stretch gap-4 border border-[#f2e8d8] rounded-xl overflow-hidden">
+                        <div className={`w-1.5 shrink-0 ${s.bar}`} />
+                        <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between py-4 pr-4 gap-2">
+                          <div>
+                            <p className="font-semibold text-[#2B2B28]">{o.id} <span className="text-xs text-[#a89f92] font-normal">· {o.date}</span></p>
+                            <p className="text-sm text-[#8a8178]">{o.items}</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="font-semibold text-[#6B1E1E]">{o.total}</span>
+                            <span className={`text-xs font-semibold px-3 py-1 rounded-full ${s.chip}`}>
+                              {o.status}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-semibold text-[#5C1A1A]">{o.total}</span>
-                        <span className={`text-xs font-semibold px-3 py-1 rounded-full ${statusColor(o.status)}`}>
-                          {o.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -308,14 +398,17 @@ const Profile = () => {
             {activeTab === "addresses" && (
               <div className="bg-white rounded-2xl border border-[#f2e8d8] shadow-sm p-6">
                 <div className="flex items-center justify-between mb-5">
-                  <h2 className="font-bold text-lg text-[#5C1A1A]">Saved Addresses</h2>
-                  <button className="text-sm font-semibold text-[#3FA34D]">+ Add New</button>
+                  <h2 className="font-display text-lg font-semibold text-[#2B2420]">Saved Addresses</h2>
+                  <button className="text-sm font-semibold text-[#2F7A38]">+ Add New</button>
                 </div>
                 <div className="space-y-4">
                   {addresses.map((a) => (
-                    <div key={a.label} className="border border-[#f2e8d8] rounded-xl p-4">
-                      <p className="font-semibold text-[#5C1A1A] mb-1">{a.label}</p>
-                      <p className="text-sm text-[#8a8178]">{a.detail}</p>
+                    <div key={a.label} className="flex items-start gap-3 border border-[#f2e8d8] rounded-xl p-4">
+                      <MapPin size={16} className="text-[#C98A2B] mt-0.5 shrink-0" />
+                      <div>
+                        <p className="font-semibold text-[#6B1E1E] mb-1">{a.label}</p>
+                        <p className="text-sm text-[#8a8178]">{a.detail}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -323,19 +416,20 @@ const Profile = () => {
             )}
 
             {activeTab === "wishlist" && (
-              <div className="bg-white rounded-2xl border border-[#f2e8d8] shadow-sm p-6 text-center text-sm text-[#8a8178]">
-                Go to the Wishlist page to view saved items.
+              <div className="bg-white rounded-2xl border border-[#f2e8d8] shadow-sm p-10 text-center">
+                <Heart size={28} className="mx-auto text-[#C98A2B] mb-3" />
+                <p className="text-sm text-[#8a8178]">Go to the Wishlist page to view saved items.</p>
               </div>
             )}
 
             {activeTab === "settings" && (
               <div className="bg-white rounded-2xl border border-[#f2e8d8] shadow-sm p-6">
-                <h2 className="font-bold text-lg text-[#5C1A1A] mb-5">Account Settings</h2>
+                <h2 className="font-display text-lg font-semibold text-[#2B2420] mb-5">Account Settings</h2>
                 <div className="space-y-4 max-w-md">
-                  <input placeholder="Full Name" defaultValue={user.name} className="w-full px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#3FA34D] outline-none" />
-                  <input placeholder="Phone" defaultValue={user.phone} className="w-full px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#3FA34D] outline-none" />
-                  <input placeholder="Email" defaultValue={user.email} className="w-full px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#3FA34D] outline-none" />
-                  <button className="bg-[#3FA34D] hover:bg-[#358c42] text-white font-semibold px-6 py-2.5 rounded-full transition-colors">
+                  <input placeholder="Full Name" defaultValue={user.name} className="w-full px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all" />
+                  <input placeholder="Phone" defaultValue={user.phone} className="w-full px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all" />
+                  <input placeholder="Email" defaultValue={user.email} className="w-full px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all" />
+                  <button className="bg-[#2F7A38] hover:bg-[#255f2c] text-white font-semibold px-6 py-2.5 rounded-full transition-colors">
                     Save Changes
                   </button>
                 </div>
