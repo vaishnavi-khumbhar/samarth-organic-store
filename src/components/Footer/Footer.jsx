@@ -27,7 +27,7 @@ const quickLinks = [
 ];
 
 const products = [
-  { label: "Groundnut Oil", to: "/products/groundnut-oil" },
+  { label: "Products", to: "/products" },
   { label: "Sesame Oil", to: "/products/sesame-oil" },
   { label: "Coconut Oil", to: "/products/coconut-oil" },
   { label: "Mustard Oil", to: "/products/mustard-oil" },

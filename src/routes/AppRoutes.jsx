@@ -10,53 +10,55 @@ import Contact from "../pages/Contact";
 import Cart from "../pages/Cart";
 import Checkout from "../pages/Checkout";
 import Wishlist from "../pages/Wishlist";
+import Profile from "../pages/Profile"; // <-- import if page exists
 
-export const router = createBrowserRouter([
+export const router = createBrowserRouter(
+  [
+    {
+      path: "/",
+      element: <MainLayout />,
+
+      children: [
+        {
+          index: true,
+          element: <Home />,
+        },
+        {
+          path: "about",
+          element: <About />,
+        },
+        {
+          path: "products",
+          element: <Products />,
+        },
+        {
+          path: "product/:id",
+          element: <ProductDetails />,
+        },
+        {
+          path: "contact",
+          element: <Contact />,
+        },
+        {
+          path: "profile",
+          element: <Profile />,
+        },
+        {
+          path: "wishlist",
+          element: <Wishlist />,
+        },
+        {
+          path: "cart",
+          element: <Cart />,
+        },
+        {
+          path: "checkout",
+          element: <Checkout />,
+        },
+      ],
+    },
+  ],
   {
-    path: "/",
-    element: <MainLayout />,
-
-    children: [
-      {
-        index: true,
-        element: <Home />,
-      },
-
-      {
-        path: "/about",
-        element: <About />,
-      },
-
-      {
-        path: "/products",
-        element: <Products />,
-      },
-
-      {
-        path: "/product/:id",
-        element: <ProductDetails />,
-      },
-
-     
-      {
-        path: "/contact",
-        element: <Contact />,
-      },
-
-      {
-        path: "/cart",
-        element: <Cart />,
-      },
-
-      {
-        path: "/checkout",
-        element: <Checkout />,
-      },
-
-      {
-        path: "/wishlist",
-        element: <Wishlist />,
-      },
-    ],
-  },
-]);
+    basename: "/samarth-organic-store",
+  }
+);

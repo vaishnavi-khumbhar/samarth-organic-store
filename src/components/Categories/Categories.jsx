@@ -3,65 +3,84 @@ import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Categories = () => {
- 
   const navigate = useNavigate();
 
- 
   return (
-<section className="section-padding pt-8 md:pt-2 pb-3">
-        <div className="container-width">
+    <section className="py-7 md:py-16 lg:py-7 bg-gradient-to-b from-[#FFFDF8] via-[#FFF8EE] to-white overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
 
-        <div className="text-center">
+        {/* Heading */}
+        <div className="text-center max-w-3xl mx-auto">
 
-          <span className="inline-block bg-[#F5B800]/15 text-[#7A2418] px-4 py-1.5 rounded-full font-semibold text-xs tracking-[0.2em] uppercase">
-            Our Categories
-          </span>
+        <span className="inline-flex items-center px-4 py-2 rounded-full bg-[#F5B800]/15 text-[#7A2418] font-semibold uppercase tracking-[0.15em] text-[11px] sm:text-xs">
+  Our Categories
+</span>
 
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mt-4 text-[#7A2418]">
-            Premium <span className="text-[#4D9F38]">Organic Oils</span>
-          </h2>
+<h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight text-[#7A2418]">
+  Premium
+  <span className="text-[#4D9F38]"> Organic Oils</span>
+</h2>
 
-          <p className="mt-3 text-[#6B6B6B] max-w-xl mx-auto text-sm sm:text-base">
-            Cold pressed, chemical free and packed straight from the wood ghana — pick your everyday essential.
-          </p>
+<p className="mt-4 text-sm sm:text-base lg:text-lg text-[#666] leading-7 max-w-2xl mx-auto">
+  Discover our collection of traditional wood pressed oils made naturally
+  without chemicals or preservatives.
+</p>
+
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 mt-12 md:mt-16">
+        {/* Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 sm:gap-7 lg:gap-8 mt-12 lg:mt-16">
 
           {categories.map((item, index) => (
+
             <div
               key={index}
-              className="group relative bg-white rounded-3xl border-2 border-[#7A2418]/15 shadow-[0_8px_24px_-12px_rgba(122,36,24,0.15)] p-4 sm:p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_40px_-16px_rgba(122,36,24,0.3)] hover:border-[#7A2418] cursor-pointer overflow-hidden"
+              className="group relative bg-white rounded-[30px] overflow-hidden border border-[#F3E5CB] shadow-lg hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 cursor-pointer"
             >
-              {/* soft accent glow behind the bottle */}
-              <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-[#F5B800]/10 blur-2xl transition-transform duration-500 group-hover:scale-125" />
 
-              <div className="relative flex items-center justify-center h-28 sm:h-40 lg:h-44">
-                <div className="absolute inset-0 m-auto w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-[#FBF6EC] transition-transform duration-500 group-hover:scale-110" />
+              {/* Top Gradient */}
+              <div className="absolute top-0 left-0 w-full h-28 bg-gradient-to-br from-[#FFF7E8] via-[#FFF3DA] to-[#FFFDF9]" />
+
+              {/* Decorative Circle */}
+              <div className="absolute top-5 left-1/2 -translate-x-1/2 w-36 h-36 rounded-full bg-[#FBF6EC] group-hover:scale-110 transition duration-500" />
+
+              {/* Image */}
+              <div className="relative flex justify-center items-center h-52 sm:h-60">
+
                 <img
                   src={item.image}
                   alt={item.title}
-                  className="relative h-24 sm:h-36 lg:h-40 mx-auto object-contain drop-shadow-md transition-transform duration-500 group-hover:scale-110"
+                  className="relative h-40 sm:h-48 lg:h-52 object-contain drop-shadow-2xl transition duration-500 group-hover:scale-110 group-hover:-translate-y-2"
                 />
+
               </div>
 
-           <h3 className="relative text-base sm:text-xl font-extrabold text-center mt-4 sm:mt-5 text-[#7A2418] group-hover:text-[#4D9F38] transition-colors duration-300">
-  {item.title}
-</h3>
+              {/* Content */}
+              <div className="px-4 sm:px-6 pb-6">
 
-              <div className="relative flex justify-center mt-3 sm:mt-5">
-               <button
-  onClick={() => navigate("/products")}
-  className="flex items-center gap-1.5 text-xs sm:text-sm text-[#4D9F38] font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-[#4D9F38]/30 group-hover:bg-[#4D9F38] group-hover:text-white group-hover:border-[#4D9F38] transition-all duration-300"
->
-  Explore
-  <ArrowRight
-    size={16}
-    className="transition-transform duration-300 group-hover:translate-x-1"
-  />
-</button>
+                <h3 className="text-center font-extrabold text-[#7A2418] text-lg sm:text-2xl lg:text-[26px] leading-tight group-hover:text-[#4D9F38] transition">
+                  {item.title}
+                </h3>
+
+                <p className="mt-3 text-center text-sm sm:text-base text-gray-500 leading-6">
+                  Pure, Natural & Cold Pressed
+                </p>
+
+                <button
+                  onClick={() => navigate("/products")}
+                  className="mt-6 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#4D9F38] to-[#5DB944] text-white font-bold text-sm sm:text-base py-3 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                >
+                  Explore Now
+                  <ArrowRight
+                    size={18}
+                    className="group-hover:translate-x-1 transition"
+                  />
+                </button>
+
               </div>
+
             </div>
+
           ))}
 
         </div>

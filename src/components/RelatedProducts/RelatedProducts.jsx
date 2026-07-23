@@ -1,160 +1,167 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Heart, ShoppingCart, Star, Eye, Leaf } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ShoppingCart, Heart, Eye } from "lucide-react";
 
 import { products } from "../../data/products";
-
-const containerVariants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.12 } },
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 40, scale: 0.95 },
-  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.55, ease: "easeOut" } },
-};
+import { useCart } from "../../context/CartContext";
+import { useWishlist } from "../../context/WishlistContext";
 
 const RelatedProducts = () => {
-  const [wishlist, setWishlist] = useState({});
+  const navigate = useNavigate();
 
-  const toggleWishlist = (id) => {
-    setWishlist((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
+  const { addToCart, isInCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
 
   return (
-    <section className="relative py-20 sm:py-24 bg-[#FAF6EE] overflow-hidden">
-      {/* Ambient glows */}
-      <div className="absolute top-0 left-0 w-72 h-72 bg-[#4D9F38]/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-80 h-80 bg-[#F5B800]/10 rounded-full blur-3xl pointer-events-none" />
+<section className="max-w-7xl mx-auto px-4 -mt-10 sm:-mt-4 pb-10">
+      {/* Heading */}
 
-      <div className="max-w-7xl mx-auto px-5 relative">
+      <div className="text-center mb-8 sm:mb-10">
 
-        {/* Heading */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.4 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12 sm:mb-16"
-        >
-          <span className="inline-block bg-[#4D9F38]/10 text-[#4D9F38] px-4 py-1.5 rounded-full font-semibold text-xs tracking-[0.2em] uppercase">
-            Related Products
-          </span>
+        <span className="inline-block bg-[#F5B800]/20 text-[#7A2418] px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-semibold tracking-wide">
+          Premium Collection
+        </span>
 
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#312E2A] mt-4">
-            You May Also Like
-          </h2>
+        <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold mt-3 text-[#7A2418]">
+          Related <span className="text-[#4D9F38]">Products</span>
+        </h2>
 
-          <p className="mt-4 text-gray-500 text-sm sm:text-base max-w-md mx-auto">
-            Explore our premium wood pressed organic oils.
-          </p>
-        </motion.div>
+        <p className="text-sm sm:text-base text-gray-500 mt-2 max-w-xl mx-auto">
+          Explore more cold pressed organic oils made using traditional
+          wooden ghani process.
+        </p>
 
-        {/* Products */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.1 }}
-          className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 lg:gap-8"
-        >
-          {products.map((item) => {
-            const isWished = !!wishlist[item.id];
-            return (
-              <motion.div
-                key={item.id}
-                variants={cardVariants}
-                whileHover={{ y: -8 }}
-                className="group relative bg-white rounded-3xl border border-[#7A2418]/5 shadow-[0_8px_24px_-12px_rgba(122,36,24,0.12)] hover:shadow-[0_24px_48px_-16px_rgba(122,36,24,0.25)] hover:border-[#7A2418]/20 transition-all duration-300 overflow-hidden"
+      </div>
+
+      {/* Products */}
+
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+
+        {products.slice(0, 4).map((item) => {
+
+          const wished = isInWishlist(item.id);
+          const added = isInCart(item.id);
+
+          return (
+
+            <div
+              key={item.id}
+              className="group relative overflow-hidden rounded-3xl bg-white border border-[#ECE6DA] shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-500"
+            >
+
+              {/* Bestseller */}
+
+              <span className="absolute top-3 left-3 z-20 bg-[#7A2418] text-white text-[10px] sm:text-xs px-3 py-1 rounded-full shadow">
+                Bestseller
+              </span>
+
+              {/* Wishlist */}
+
+              <button
+                onClick={() => toggleWishlist(item)}
+                className={`absolute top-3 right-3 sm:top-4 sm:right-4 z-20
+                w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center
+                transition-all duration-300
+
+                ${
+                  wished
+                    ? "bg-red-500 text-white shadow-lg"
+                    : "bg-white text-[#7A2418] hover:bg-[#7A2418] hover:text-white"
+                }`}
               >
-                {/* Image */}
-                <div className="relative overflow-hidden bg-[#FAF7F2]">
+                <Heart
+                  size={18}
+                  fill={wished ? "currentColor" : "none"}
+                />
+              </button>
 
-                  {/* Organic badge */}
-                  <span className="absolute top-4 left-4 z-10 flex items-center gap-1 bg-white/90 backdrop-blur-sm text-[#4D9F38] text-[10px] sm:text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm">
-                    <Leaf size={12} />
-                    Organic
-                  </span>
+              {/* Product */}
 
-                  {/* Wishlist toggle */}
-                  <motion.button
-                    whileTap={{ scale: 0.85 }}
-                    onClick={() => toggleWishlist(item.id)}
-                    aria-label="Toggle wishlist"
-                    className={`absolute top-4 right-4 z-10 p-2 rounded-full shadow-sm transition-colors duration-300 ${
-                      isWished
-                        ? "bg-red-500 text-white"
-                        : "bg-white/90 backdrop-blur-sm text-gray-500 hover:text-red-500"
-                    }`}
-                  >
-                    <Heart size={16} fill={isWished ? "currentColor" : "none"} />
-                  </motion.button>
+              <Link to={`/product/${item.slug}`}>
+
+                <div className="bg-gradient-to-b from-[#FBF6EC] to-white h-40 sm:h-56 flex justify-center items-center overflow-hidden">
 
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="h-64 sm:h-72 w-full object-contain p-5 group-hover:scale-110 transition-transform duration-500"
+                    className="h-32 sm:h-44 lg:h-48 object-contain group-hover:scale-110 transition duration-500"
                   />
 
-                  {/* Quick view overlay */}
-                  <div className="absolute inset-0 bg-[#312E2A]/0 group-hover:bg-[#312E2A]/5 transition-colors duration-300 flex items-end justify-center pb-4 opacity-0 group-hover:opacity-100">
-                    <button className="flex items-center gap-2 bg-white text-[#312E2A] text-xs sm:text-sm font-semibold px-4 py-2 rounded-full shadow-md translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                      <Eye size={15} />
-                      Quick View
-                    </button>
-                  </div>
                 </div>
 
-                {/* Content */}
-                <div className="p-5 sm:p-6">
+                <div className="p-3 sm:p-5 text-center">
 
-                  <h3 className="text-lg sm:text-xl font-semibold text-[#312E2A] truncate">
+                  <h3 className="font-bold text-sm sm:text-lg text-[#333] line-clamp-1">
                     {item.name}
                   </h3>
 
                   {/* Rating */}
-                  <div className="flex gap-0.5 text-[#F4B400] mt-2.5">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} size={15} fill="currentColor" strokeWidth={0} />
+
+                  <div className="flex justify-center gap-1 mt-2">
+
+                    {[1,2,3,4,5].map((star)=>(
+                      <svg
+                        key={star}
+                        className="w-3 h-3 sm:w-4 sm:h-4"
+                        viewBox="0 0 20 20"
+                        fill="#F5B800"
+                      >
+                        <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1 1 5.8L10 14.9l-5.21 2.62 1-5.8-4.21-4.1 5.82-.85z"/>
+                      </svg>
                     ))}
+
                   </div>
 
-                  {/* Price */}
-                  <h4 className="text-[#4D9F38] text-xl sm:text-2xl font-bold mt-3">
+                  <p className="text-[#4D9F38] font-bold text-lg sm:text-xl mt-2">
                     {item.price}
-                  </h4>
-
-                  {/* Buttons */}
-                  <div className="flex gap-2.5 sm:gap-3 mt-5 sm:mt-6">
-
-                    <motion.button
-                      whileTap={{ scale: 0.96 }}
-                      className="flex-1 bg-[#4D9F38] text-white py-2.5 sm:py-3 rounded-full font-semibold text-sm sm:text-base hover:bg-[#3E822E] hover:shadow-lg transition-all duration-300"
-                    >
-                      View Product
-                    </motion.button>
-
-                    <motion.button
-                      whileTap={{ scale: 0.9 }}
-                      aria-label="Add to cart"
-                      className="p-2.5 sm:p-3 rounded-full border border-gray-200 hover:bg-[#4D9F38] hover:border-[#4D9F38] hover:text-white transition-colors duration-300"
-                    >
-                      <ShoppingCart size={18} />
-                    </motion.button>
-
-                  </div>
+                  </p>
 
                 </div>
 
+              </Link>
 
-                
-              </motion.div>
-            );
-          })}
+              {/* Button */}
 
-        </motion.div>
+              <div className="px-3 sm:px-5 pb-4 sm:pb-5">
+
+                {added ? (
+
+                  <button
+                    onClick={() => navigate("/cart")}
+                    className="w-full bg-[#7A2418] hover:bg-[#5c1b11]
+                    text-white py-2.5 sm:py-3 rounded-xl
+                    flex items-center justify-center gap-2
+                    font-semibold text-sm sm:text-base
+                    transition-all duration-300 hover:scale-[1.03]"
+                  >
+                    <Eye size={18} />
+                    View Cart
+                  </button>
+
+                ) : (
+
+                  <button
+                    onClick={() => addToCart(item)}
+                    className="w-full bg-[#4D9F38] hover:bg-[#3b7c2c]
+                    text-white py-2.5 sm:py-3 rounded-xl
+                    flex items-center justify-center gap-2
+                    font-semibold text-sm sm:text-base
+                    transition-all duration-300 hover:scale-[1.03]"
+                  >
+                    <ShoppingCart size={18} />
+                    Add To Cart
+                  </button>
+
+                )}
+
+              </div>
+
+            </div>
+
+          );
+        })}
 
       </div>
+
     </section>
   );
 };
