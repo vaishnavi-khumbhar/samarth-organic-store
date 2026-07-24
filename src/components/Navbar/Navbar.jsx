@@ -261,9 +261,14 @@ const Navbar = () => {
             mobileSearchOpen ? "grid-rows-[1fr] opacity-100 pb-3" : "grid-rows-[0fr] opacity-0"
           }`}
         >
-          <div className="overflow-hidden">
-            <SearchBar setOpen={() => setMobileSearchOpen(false)} />
-          </div>
+      {mobileSearchOpen && (
+  <div className="lg:hidden absolute left-0 right-0 top-full z-[9999] px-3 pt-2">
+    <div className="rounded-2xl bg-white shadow-2xl border border-[#E5DCC8] p-2">
+      <SearchBar setOpen={() => setMobileSearchOpen(false)} />
+    </div>
+  </div>
+)}
+
         </div>
       </div>
 

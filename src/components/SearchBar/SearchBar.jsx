@@ -2,91 +2,96 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import { products } from "../../data/products";
+// Backend वापरत असाल:
+// import { useProducts } from "../../hooks/useProducts";
 
 const SearchBar = ({ setOpen = () => {} }) => {
-  const [query, setQuery] = useState("");
-  const inputRef = useRef(null);
   const navigate = useNavigate();
+  const inputRef = useRef(null);
+
+  const [query, setQuery] = useState("");
+
+  // Backend वापरत असाल
+  // const { products } = useProducts();
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
-  const trimmed = query.trim();
-
-  const results = trimmed
-    ? products.filter((item) =>
-        item.name.toLowerCase().includes(trimmed.toLowerCase())
-      )
-    : [];
+  const filtered =
+    query.trim() === ""
+      ? []
+      : products.filter((item) =>
+          item.name.toLowerCase().includes(query.trim().toLowerCase())
+        );
 
   const handleSelect = (slug) => {
-    setQuery("");
-    setOpen(false);
-
     navigate(`/product/${slug}`);
-  };
-
-  const handleClose = () => {
     setQuery("");
     setOpen(false);
   };
 
   return (
-    <div className="relative w-full">
-      <div className="flex items-center gap-2 bg-white rounded-full border border-[#E5DCC8] px-4 py-2.5">
-
-        <Search size={18} className="text-[#7A2418]" />
+    <div className="relative w-full overflow-visible">
+      <div className="flex items-center bg-white border border-[#E5DCC8] rounded-full px-4 py-3 shadow-sm">
+        <Search size={18} className="text-[#7A2418] shrink-0" />
 
         <input
           ref={inputRef}
+          type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
           placeholder="Search products..."
-          className="flex-1 outline-none bg-transparent"
+          onChange={(e) => setQuery(e.target.value)}
+          className="flex-1 bg-transparent outline-none px-3 text-sm"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && filtered.length > 0) {
+              handleSelect(filtered[0].slug);
+            }
+          }}
         />
 
         {query && (
-          <button onClick={() => setQuery("")}>
+          <button
+            onClick={() => setQuery("")}
+            className="text-gray-500 hover:text-red-500 transition"
+          >
             <X size={18} />
           </button>
         )}
-
       </div>
 
-      {trimmed && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border z-50 max-h-80 overflow-y-auto">
-
-          {results.length ? (
-            results.map((item) => (
+      {query.trim() !== "" && (
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl border border-[#E5DCC8] shadow-2xl z-[9999] max-h-[70vh] overflow-y-auto">
+          {filtered.length > 0 ? (
+            filtered.map((item) => (
               <button
                 key={item.id}
+                type="button"
                 onClick={() => handleSelect(item.slug)}
-                className="w-full flex items-center gap-3 p-3 hover:bg-[#FBF6EC]"
+                className="w-full flex items-center gap-3 p-3 hover:bg-[#FBF6EC] transition text-left"
               >
                 <img
                   src={item.image}
-                  className="w-12 h-12 object-contain"
                   alt={item.name}
+                  className="w-14 h-14 object-contain rounded-lg bg-white border"
                 />
 
-                <div className="text-left">
-                  <h4 className="font-semibold">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-[#222] text-sm">
                     {item.name}
                   </h4>
 
-                  <p className="text-[#4D9F38] font-bold">
+                  <p className="text-[#4D9F38] font-bold text-sm mt-1">
                     {item.price}
                   </p>
                 </div>
               </button>
             ))
           ) : (
-            <div className="p-5 text-center">
+            <div className="py-8 text-center text-gray-500 font-medium">
               No Product Found
             </div>
           )}
-
         </div>
       )}
     </div>
