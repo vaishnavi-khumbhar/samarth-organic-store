@@ -16,6 +16,8 @@ import {
   Droplet,
   ShieldCheck,
 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { useAddress } from "../context/AddressContext";
 
 /*
   Design tokens
@@ -50,29 +52,29 @@ const GhaniMark = ({ size = 56, spin = false }) => (
 );
 
 const Profile = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // isLoggedIn / user / logout now come from the shared AuthContext, so this
+  // page always reflects whatever the header / cart login flow already did.
+  const { user, isLoggedIn, loginWithPhone, updateUser, logout } = useAuth();
+  
+  const { addresses } = useAddress();
+
   const [authMode, setAuthMode] = useState("login"); // "login" | "signup"
   const [showPassword, setShowPassword] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [authForm, setAuthForm] = useState({ name: "", phone: "", email: "", password: "" });
   const [activeTab, setActiveTab] = useState("orders");
 
-  const user = {
-    name: authForm.name || "Rahul Sharma",
-    phone: authForm.phone || "+91 98765 43210",
-    email: authForm.email || "rahul.sharma@gmail.com",
-    joined: "Member since Jan 2025",
+  const displayUser = {
+    name: user?.name || "Guest",
+    phone: user?.phone || "",
+    email: user?.email || "",
+    joined: user?.joined ? new Date(user.joined).toLocaleDateString("en-IN", { month: "short", year: "numeric" }) : "",
   };
 
   const orders = [
     { id: "SO2401", date: "18 Jul 2026", items: "Groundnut Oil x2", total: "₹440", status: "Delivered" },
     { id: "SO2398", date: "05 Jul 2026", items: "Sesame Oil, Mustard Oil", total: "₹450", status: "Delivered" },
     { id: "SO2385", date: "22 Jun 2026", items: "Coconut Oil x1", total: "₹270", status: "Cancelled" },
-  ];
-
-  const addresses = [
-    { label: "Home", detail: "123, Shivaji Nagar, Pune, Maharashtra - 411005" },
-    { label: "Office", detail: "45, MG Road, Pune, Maharashtra - 411001" },
   ];
 
   const menuItems = [
@@ -98,12 +100,15 @@ const Profile = () => {
     setAuthLoading(true);
     setTimeout(() => {
       setAuthLoading(false);
-      setIsLoggedIn(true);
+      loginWithPhone(authForm.phone);
+      if (authMode === "signup") {
+        updateUser({ name: authForm.name, email: authForm.email });
+      }
     }, 1200);
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
+    logout();
     setAuthMode("login");
     setActiveTab("orders");
     setAuthForm({ name: "", phone: "", email: "", password: "" });
@@ -318,17 +323,20 @@ const Profile = () => {
             }}
           />
           <div className="relative w-20 h-20 rounded-full ring-4 ring-white/20 bg-white/10 text-white flex items-center justify-center text-2xl font-display font-semibold shrink-0">
-            {user.name.split(" ").map((n) => n[0]).join("")}
+            {(displayUser.name || "G").split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
           </div>
           <div className="relative flex-1 text-center sm:text-left">
             <div className="flex items-center justify-center sm:justify-start gap-2">
-              <h1 className="font-display text-xl md:text-2xl font-semibold text-white">{user.name}</h1>
+              <h1 className="font-display text-xl md:text-2xl font-semibold text-white">{displayUser.name}</h1>
               <span className="text-[10px] uppercase tracking-wider font-semibold bg-[#C98A2B] text-white px-2.5 py-1 rounded-full">
                 Gold Member
               </span>
             </div>
-            <p className="text-sm text-white/70 mt-1">{user.phone} · {user.email}</p>
-            <p className="text-xs text-white/50 mt-1">{user.joined}</p>
+            <p className="text-sm text-white/70 mt-1">
+              {displayUser.phone}
+              {displayUser.email && ` · ${displayUser.email}`}
+            </p>
+            {displayUser.joined && <p className="text-xs text-white/50 mt-1">Member since {displayUser.joined}</p>}
           </div>
           <button className="relative flex items-center gap-1.5 border border-white/40 text-white hover:bg-white hover:text-[#6B1E1E] font-semibold text-sm px-4 py-2 rounded-full transition-colors">
             <Edit2 size={15} /> Edit Profile
@@ -399,19 +407,29 @@ const Profile = () => {
               <div className="bg-white rounded-2xl border border-[#f2e8d8] shadow-sm p-6">
                 <div className="flex items-center justify-between mb-5">
                   <h2 className="font-display text-lg font-semibold text-[#2B2420]">Saved Addresses</h2>
-                  <button className="text-sm font-semibold text-[#2F7A38]">+ Add New</button>
                 </div>
-                <div className="space-y-4">
-                  {addresses.map((a) => (
-                    <div key={a.label} className="flex items-start gap-3 border border-[#f2e8d8] rounded-xl p-4">
-                      <MapPin size={16} className="text-[#C98A2B] mt-0.5 shrink-0" />
-                      <div>
-                        <p className="font-semibold text-[#6B1E1E] mb-1">{a.label}</p>
-                        <p className="text-sm text-[#8a8178]">{a.detail}</p>
+                {addresses.length === 0 ? (
+                  <div className="text-center py-8">
+                    <MapPin size={26} className="mx-auto text-[#C98A2B] mb-3" />
+                    <p className="text-sm text-[#8a8178]">
+                      No saved addresses yet — add one from the Cart page when choosing "Deliver to an address".
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {addresses.map((a) => (
+                      <div key={a.id} className="flex items-start gap-3 border border-[#f2e8d8] rounded-xl p-4">
+                        <MapPin size={16} className="text-[#C98A2B] mt-0.5 shrink-0" />
+                        <div>
+                          <p className="font-semibold text-[#6B1E1E] mb-1">{a.name} · {a.tag}</p>
+                          <p className="text-sm text-[#8a8178]">
+                            {a.flat}, {a.locality}, {a.city}, {a.state} - {a.pincode}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -426,9 +444,9 @@ const Profile = () => {
               <div className="bg-white rounded-2xl border border-[#f2e8d8] shadow-sm p-6">
                 <h2 className="font-display text-lg font-semibold text-[#2B2420] mb-5">Account Settings</h2>
                 <div className="space-y-4 max-w-md">
-                  <input placeholder="Full Name" defaultValue={user.name} className="w-full px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all" />
-                  <input placeholder="Phone" defaultValue={user.phone} className="w-full px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all" />
-                  <input placeholder="Email" defaultValue={user.email} className="w-full px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all" />
+                  <input placeholder="Full Name" defaultValue={displayUser.name} className="w-full px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all" />
+                  <input placeholder="Phone" defaultValue={displayUser.phone} className="w-full px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all" />
+                  <input placeholder="Email" defaultValue={displayUser.email} className="w-full px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all" />
                   <button className="bg-[#2F7A38] hover:bg-[#255f2c] text-white font-semibold px-6 py-2.5 rounded-full transition-colors">
                     Save Changes
                   </button>

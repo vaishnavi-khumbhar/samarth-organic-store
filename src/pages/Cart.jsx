@@ -14,16 +14,35 @@ import {
   Smartphone,
   CreditCard,
   Wallet,
+  Truck,
 } from "lucide-react";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
+import { useAddress } from "../context/AddressContext";
+import AddressForm from "../components/AddressForm/AddressForm";
+
+import { createRazorpayOrder, createOrder } from "../utils/api";
+
+// Safely convert anything (string like "₹399", number, undefined, null) into a plain number
+const toNum = (val) => {
+  if (val === undefined || val === null) return 0;
+  const n = Number(String(val).replace(/[^\d.]/g, ""));
+  return Number.isFinite(n) ? n : 0;
+};
+
+// product data madhe kadhi `img` kadhi `image` field asto, donhi try karto
+const getImg = (item) => item.img || item.image || "";
 
 const Cart = () => {
   const { cart, removeFromCart, updateCartQty, clearCart } = useCart();
+  const { requireLogin } = useAuth();
+  const { addresses, selectedAddressId, setSelectedAddressId } = useAddress();
 
   const [coupon, setCoupon] = useState("");
   const [couponMsg, setCouponMsg] = useState("");
   const [discountPct, setDiscountPct] = useState(0);
   const [deliveryType, setDeliveryType] = useState("pickup"); // "address" | "pickup"
+  const [showAddressForm, setShowAddressForm] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [payMethod, setPayMethod] = useState("upi");
   const [payStep, setPayStep] = useState("select"); // select | processing | success
@@ -38,13 +57,30 @@ const Cart = () => {
     }
   };
 
-  const itemTotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+  // price / qty ata number madhech convert hotay, mhanun NaN chi problem nahi yenar
+  const itemTotal = cart.reduce(
+    (sum, item) => sum + toNum(item.price) * toNum(item.qty),
+    0
+  );
   const discount = itemTotal * discountPct;
   const grandTotal = itemTotal - discount;
+
+  // "Deliver to an address" -> login required first
+  const handleChooseAddressDelivery = () => {
+    requireLogin(() => {
+      setDeliveryType("address");
+      setShowAddressForm(addresses.length === 0);
+    });
+  };
 
   const openPayment = () => {
     setPayStep("select");
     setShowPayment(true);
+  };
+
+  // "Pay Now" -> login required first
+  const handlePayNow = () => {
+    requireLogin(openPayment);
   };
 
   const startPayment = () => {
@@ -73,9 +109,10 @@ const Cart = () => {
         {cart.length === 0 ? (
           <div className="bg-white rounded-2xl border border-[#F0E4CE] shadow-sm p-12 text-center">
             <ShoppingBag size={40} className="mx-auto text-[#d8ccc0] mb-4" />
-<h2 className="font-extrabold text-3xl sm:text-4xl tracking-tight text-[#7A2418] mb-2">
-  Your cart is empty
-</h2>            <p className="text-sm text-[#8a8178] mb-5">Add some pure wood pressed oils to get started.</p>
+            <h2 className="font-extrabold text-3xl sm:text-4xl tracking-tight text-[#7A2418] mb-2">
+              Your cart is empty
+            </h2>
+            <p className="text-sm text-[#8a8178] mb-5">Add some pure wood pressed oils to get started.</p>
             <a
               href="/products"
               className="inline-block bg-[#3C8C2E] hover:bg-[#316f26] text-white font-semibold px-6 py-2.5 rounded-full transition-colors"
@@ -89,23 +126,23 @@ const Cart = () => {
             {/* LEFT: offers, delivery, store, instructions */}
             <div className="lg:col-span-2 space-y-4">
 
-              {/* Coupon */}
+              {/* Coupon - ata mobile var stack hoil, baher jaणar nahi */}
               <div className="bg-white rounded-2xl border border-[#F0E4CE] shadow-sm p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <Tag size={17} className="text-[#3C8C2E]" />
                   <span className="font-bold text-[#2B2B28]">Available offers</span>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
                     value={coupon}
                     onChange={(e) => setCoupon(e.target.value)}
                     placeholder="Enter coupon code"
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#3C8C2E] outline-none"
+                    className="w-full sm:flex-1 min-w-0 px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#3C8C2E] outline-none"
                   />
                   <button
                     onClick={applyCoupon}
-                    className="text-[#7A2418] font-bold text-sm px-5 hover:text-[#5C160D] transition-colors"
+                    className="w-full sm:w-auto shrink-0 bg-[#7A2418] sm:bg-transparent text-white sm:text-[#7A2418] font-bold text-sm px-5 py-2.5 sm:py-0 rounded-xl sm:rounded-none hover:opacity-90 sm:hover:text-[#5C160D] transition-colors"
                   >
                     Apply
                   </button>
@@ -120,7 +157,7 @@ const Cart = () => {
               {/* Delivery type */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button
-                  onClick={() => setDeliveryType("address")}
+                  onClick={handleChooseAddressDelivery}
                   className={`text-left bg-white rounded-2xl border p-5 transition-colors ${
                     deliveryType === "address" ? "border-[#7A2418] ring-2 ring-[#7A2418]/10" : "border-[#F0E4CE]"
                   }`}
@@ -161,7 +198,7 @@ const Cart = () => {
               {/* Store location */}
               {deliveryType === "pickup" && (
                 <div className="bg-white rounded-2xl border border-[#F0E4CE] shadow-sm p-5">
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-2 flex-wrap gap-1">
                     <div className="flex items-center gap-2">
                       <MapPin size={17} className="text-[#3C8C2E]" />
                       <span className="font-bold text-[#2B2B28]">Store location</span>
@@ -173,6 +210,63 @@ const Cart = () => {
                   <p className="text-sm text-[#8a8178] pl-6">
                     Near School No. 1, Asha Naka Road, Urun-Islampur, Tal. Walwa, Dist. Sangli - 415409, Maharashtra
                   </p>
+                </div>
+              )}
+
+              {/* Delivery address (login-gated) */}
+              {deliveryType === "address" && (
+                <div>
+                  {showAddressForm || addresses.length === 0 ? (
+                    <AddressForm
+                      onSaved={() => setShowAddressForm(false)}
+                      onCancel={addresses.length > 0 ? () => setShowAddressForm(false) : undefined}
+                    />
+                  ) : (
+                    <div className="bg-white rounded-2xl border border-[#F0E4CE] shadow-sm p-5">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <Truck size={17} className="text-[#3C8C2E]" />
+                          <span className="font-bold text-[#2B2B28]">Delivery Address</span>
+                        </div>
+                        <button
+                          onClick={() => setShowAddressForm(true)}
+                          className="text-sm font-semibold text-[#7A2418] hover:text-[#5C160D] transition-colors"
+                        >
+                          + Add New
+                        </button>
+                      </div>
+                      <div className="space-y-3">
+                        {addresses.map((a) => (
+                          <label
+                            key={a.id}
+                            className={`flex items-start gap-3 border rounded-xl p-4 cursor-pointer transition-colors ${
+                              selectedAddressId === a.id ? "border-[#7A2418] bg-[#FBF6EC]" : "border-[#F0E4CE]"
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="selectedAddress"
+                              checked={selectedAddressId === a.id}
+                              onChange={() => setSelectedAddressId(a.id)}
+                              className="mt-1 accent-[#7A2418]"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-semibold text-[#2B2B28]">{a.name}</span>
+                                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-[#FBF6EC] text-[#7A2418] border border-[#ecdfc9]">
+                                  {a.tag}
+                                </span>
+                              </div>
+                              <p className="text-sm text-[#8a8178] mt-0.5">{a.phone}</p>
+                              <p className="text-sm text-[#8a8178]">
+                                {a.flat}, {a.locality}, {a.city}, {a.state} - {a.pincode}
+                              </p>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -188,56 +282,63 @@ const Cart = () => {
 
             {/* RIGHT: cart items + summary */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl border border-[#F0E4CE] shadow-sm p-5 sticky top-24">
+              <div className="bg-white rounded-2xl border border-[#F0E4CE] shadow-sm p-5 lg:sticky lg:top-24">
                 <div className="space-y-5 mb-4">
-                  {cart.map((item) => (
-                    <div key={item.id} className="flex items-start gap-3">
-                      <img
-                        src={item.img}
-                        alt={item.name}
-                        className="w-14 h-14 rounded-lg object-cover bg-[#FDF8EF] border border-[#F0E4CE] shrink-0"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-[#2B2B28] truncate">{item.name}</p>
-                        <p className="text-xs mt-0.5">
-                          <span className="font-semibold text-[#2B2B28]">₹{item.price}</span>{" "}
-                          {item.mrp > item.price && (
-                            <>
-                              <span className="line-through text-[#b0a696] ml-1">₹{item.mrp}</span>
-                              <span className="text-[#3C8C2E] ml-1">
-                                {Math.round((1 - item.price / item.mrp) * 100)}% OFF
-                              </span>
-                            </>
-                          )}
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <button
-                            onClick={() => removeFromCart(item.id)}
-                            aria-label="Remove item"
-                            className="text-[#B23A3A] hover:text-[#7A2418] transition-colors"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                          <div className="flex items-center border border-[#ecdfc9] rounded-lg overflow-hidden">
+                  {cart.map((item) => {
+                    const price = toNum(item.price);
+                    const mrp = toNum(item.mrp);
+                    const qty = toNum(item.qty) || 1;
+                    const lineTotal = price * qty;
+
+                    return (
+                      <div key={item.id} className="flex items-start gap-3">
+                        <img
+                          src={getImg(item)}
+                          alt={item.name}
+                          className="w-14 h-14 rounded-lg object-cover bg-[#FDF8EF] border border-[#F0E4CE] shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-[#2B2B28] truncate">{item.name}</p>
+                          <p className="text-xs mt-0.5">
+                            <span className="font-semibold text-[#2B2B28]">₹{price}</span>{" "}
+                            {mrp > price && (
+                              <>
+                                <span className="line-through text-[#b0a696] ml-1">₹{mrp}</span>
+                                <span className="text-[#3C8C2E] ml-1">
+                                  {Math.round((1 - price / mrp) * 100)}% OFF
+                                </span>
+                              </>
+                            )}
+                          </p>
+                          <div className="flex items-center gap-2 mt-2">
                             <button
-                              onClick={() => updateCartQty(item.id, -1)}
-                              className="w-6 h-6 flex items-center justify-center text-[#7A2418] hover:bg-[#FBF6EC] transition-colors"
+                              onClick={() => removeFromCart(item.id)}
+                              aria-label="Remove item"
+                              className="text-[#B23A3A] hover:text-[#7A2418] transition-colors"
                             >
-                              <Minus size={12} />
+                              <Trash2 size={14} />
                             </button>
-                            <span className="w-7 text-center text-xs font-semibold">{item.qty}</span>
-                            <button
-                              onClick={() => updateCartQty(item.id, 1)}
-                              className="w-6 h-6 flex items-center justify-center text-[#7A2418] hover:bg-[#FBF6EC] transition-colors"
-                            >
-                              <Plus size={12} />
-                            </button>
+                            <div className="flex items-center border border-[#ecdfc9] rounded-lg overflow-hidden">
+                              <button
+                                onClick={() => updateCartQty(item.id, -1)}
+                                className="w-6 h-6 flex items-center justify-center text-[#7A2418] hover:bg-[#FBF6EC] transition-colors"
+                              >
+                                <Minus size={12} />
+                              </button>
+                              <span className="w-7 text-center text-xs font-semibold">{qty}</span>
+                              <button
+                                onClick={() => updateCartQty(item.id, 1)}
+                                className="w-6 h-6 flex items-center justify-center text-[#7A2418] hover:bg-[#FBF6EC] transition-colors"
+                              >
+                                <Plus size={12} />
+                              </button>
+                            </div>
                           </div>
                         </div>
+                        <p className="font-bold text-sm text-[#2B2B28] shrink-0">₹{lineTotal.toFixed(2)}</p>
                       </div>
-                      <p className="font-bold text-sm text-[#2B2B28] shrink-0">₹{item.price * item.qty}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div className="border-t border-[#F0E4CE] pt-3 space-y-2 text-sm">
@@ -259,13 +360,13 @@ const Cart = () => {
                 </div>
 
                 <button
-                  onClick={openPayment}
+                  onClick={handlePayNow}
                   className="w-full bg-gradient-to-r from-[#F0821D] to-[#e05a12] hover:brightness-105 text-white font-bold py-3.5 rounded-full transition-all shadow-md shadow-[#F0821D]/30"
                 >
                   Pay Now
                 </button>
 
-                <div className="flex items-center justify-center gap-4 mt-4 text-xs text-[#a89f92]">
+                <div className="flex items-center justify-center gap-4 mt-4 text-xs text-[#a89f92] flex-wrap">
                   <span className="flex items-center gap-1"><Lock size={12} /> Secured Payment</span>
                   <span className="flex items-center gap-1"><ShieldCheck size={12} /> Verified Merchant</span>
                 </div>
@@ -278,7 +379,7 @@ const Cart = () => {
       {/* PAYMENT MODAL */}
       {showPayment && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-          <div className="bg-white rounded-3xl w-full max-w-md p-6 md:p-7 relative shadow-2xl">
+          <div className="bg-white rounded-3xl w-full max-w-md p-6 md:p-7 relative shadow-2xl max-h-[90vh] overflow-y-auto">
             <button
               onClick={closePayment}
               aria-label="Close"
