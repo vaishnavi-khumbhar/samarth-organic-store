@@ -1,9 +1,9 @@
 import oil1 from "../assets/images/products/oil1.jpg";
 import oil2 from "../assets/images/products/oil2.jpg";
 import oil3 from "../assets/images/products/oil3.jpg";
-import oil4 from "../assets/images/products/oil4.jpg";
+import oil4 from "../assets/images/products/3.png";
 import oil5 from "../assets/images/products/oil5.jpg";
-import oil6 from "../assets/images/products/oil6.jpg";
+import oil6 from "../assets/images/products/oil6.png";
 import oil7 from "../assets/images/products/oil7.jpg";
 
 import oil8 from "../assets/images/products/oil8.jpg";

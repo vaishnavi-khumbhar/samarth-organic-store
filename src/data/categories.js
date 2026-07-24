@@ -1,8 +1,8 @@
-import groundnut from "../assets/images/products/groundnut.jpg";
-import sesame from "../assets/images/products/sesame.jpg";
-import coconut from "../assets/images/products/coconut.jpg";
-import mustard from "../assets/images/products/mustard.jpg";
-import sunflower from "../assets/images/products/sunflower.jpg";
+import groundnut from "../assets/images/products/groundnut.png";
+import sesame from "../assets/images/products/sesame.png";
+import coconut from "../assets/images/products/coconut.png";
+import mustard from "../assets/images/products/mustard.png";
+import sunflower from "../assets/images/products/sunflower.png";
 
 export const categories = [
   {
