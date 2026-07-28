@@ -12,6 +12,8 @@ import {
   FaFacebook,
   FaInstagram,
   FaWhatsapp,
+    FaYoutube,
+
 } from "react-icons/fa";
 
 const BRAND = "#7A2418";
@@ -22,7 +24,6 @@ const quickLinks = [
   { label: "Home", to: "/" },
   { label: "About", to: "/about" },
   { label: "Products", to: "/products" },
-  { label: "Gallery", to: "/gallery" },
   { label: "Contact", to: "/contact" },
 ];
 
@@ -38,6 +39,8 @@ const socials = [
   { icon: FaFacebook, href: "#", label: "Facebook" },
   { icon: FaInstagram, href: "#", label: "Instagram" },
   { icon: FaWhatsapp, href: "#", label: "WhatsApp" },
+  { icon: FaYoutube, href: "#", label: "YouTube" },
+
 ];
 
 const fadeUp = {

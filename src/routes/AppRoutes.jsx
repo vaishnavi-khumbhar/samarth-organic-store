@@ -12,6 +12,8 @@ import Checkout from "../pages/Checkout";
 import Wishlist from "../pages/Wishlist";
 import Profile from "../pages/Profile"; // <-- import if page exists
 
+
+
 export const router = createBrowserRouter(
   [
     {

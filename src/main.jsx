@@ -10,6 +10,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { AddressProvider } from "./context/AddressContext";
 import LoginModal from "./components/LoginModal/LoginModal";
 
+
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(

@@ -15,6 +15,7 @@ export const products = [
     name: "Groundnut Oil",
     slug: "groundnut-oil",
     price: "₹399",
+    mrp: "₹440",
     image: oil1,
   },
   {
@@ -22,6 +23,7 @@ export const products = [
     name: "Sesame Oil",
     slug: "sesame-oil",
     price: "₹499",
+    mrp: "₹540",
     image: oil2,
   },
   {
@@ -29,6 +31,7 @@ export const products = [
     name: "Coconut Oil",
     slug: "coconut-oil",
     price: "₹349",
+    mrp: "₹380",
     image: oil3,
   },
   {
@@ -36,6 +39,7 @@ export const products = [
     name: "Sunflower Oil",
     slug: "sunflower-oil",
     price: "₹449",
+    mrp: "₹480",
     image: oil4,
   },
   {
@@ -43,6 +47,7 @@ export const products = [
     name: "Mustard Oil",
     slug: "mustard-oil",
     price: "₹429",
+    mrp: "₹460",
     image: oil5,
   },
   {
@@ -50,6 +55,7 @@ export const products = [
     name: "Flexseed Oil",
     slug: "flexseed-oil",
     price: "₹599",
+    mrp: "₹650",
     image: oil6,
   },
   {
@@ -57,6 +63,7 @@ export const products = [
     name: "Almond Oil",
     slug: "almond-oil",
     price: "₹799",
+    mrp: "₹850",
     image: oil7,
   },
   {
@@ -64,6 +71,7 @@ export const products = [
     name: "Walnut Oil",
     slug: "walnut-oil",
     price: "₹999",
+    mrp: "₹1050",
     image: oil8,
   },
 ];

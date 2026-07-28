@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import heroOil from "../../assets/images/hero/oil-bottle.png";
 import center from "../../assets/images/hero/center.png";
-
+import { Link } from "react-router-dom";
 
 import { Leaf, ShieldCheck, Droplets } from "lucide-react";
 
@@ -138,17 +138,23 @@ const Hero = () => {
 
       <div className="mt-6 space-y-3">
 
-<button
-className="w-full rounded-full bg-gradient-to-r from-[#4D9F38] to-[#68B04F] py-3.5 text-white font-semibold transition-all duration-300 hover:scale-[1.03] shadow-xl shadow-[#4D9F38]/30"
->
-Shop Now
-</button>
+<div className="flex flex-col sm:flex-row gap-4">
+  <Link to="/products" className="w-full">
+    <button
+      className="w-full rounded-full bg-gradient-to-r from-[#4D9F38] to-[#68B04F] py-3.5 text-white font-semibold transition-all duration-300 hover:scale-[1.03] shadow-xl shadow-[#4D9F38]/30"
+    >
+      Shop Now
+    </button>
+  </Link>
 
-<button
-className="w-full rounded-full border-2 border-[#4D9F38] bg-white text-[#4D9F38] py-3.5 font-semibold transition-all duration-300 hover:bg-[#4D9F38] hover:text-white hover:scale-[1.03]"
->
-Explore Products
-</button>
+  <Link to="/about" className="w-full">
+    <button
+      className="w-full rounded-full border-2 border-[#4D9F38] bg-white text-[#4D9F38] py-3.5 font-semibold transition-all duration-300 hover:bg-[#4D9F38] hover:text-white hover:scale-[1.03]"
+    >
+      Learn More
+    </button>
+  </Link>
+</div>
 
 </div>
 
@@ -211,12 +217,19 @@ className="rounded-xl bg-[#F9F7F2] py-2.5 border border-[#4D9F38]/15 text-center
 </p>
 
           <div className="mt-7 flex flex-wrap gap-4">
-            <button className="bg-[#4D9F38] hover:bg-[#3e842d] text-white px-8 py-3.5 lg:py-4 rounded-full font-semibold transition-all hover:-translate-y-0.5 shadow-md shadow-[#4D9F38]/25">
-              Shop Now
-            </button>
-            <button className="border-2 border-[#F4B400] text-[#8C3D2F] px-8 py-3.5 lg:py-4 rounded-full font-semibold hover:bg-[#F4B400]/10 transition-colors">
-              Learn More
-            </button>
+           <div className="flex flex-wrap gap-4">
+  <Link to="/products">
+    <button className="bg-[#4D9F38] hover:bg-[#3e842d] text-white px-8 py-3.5 lg:py-4 rounded-full font-semibold transition-all hover:-translate-y-0.5 shadow-md shadow-[#4D9F38]/25">
+      Shop Now
+    </button>
+  </Link>
+
+  <Link to="/about">
+    <button className="border-2 border-[#F4B400] text-[#8C3D2F] px-8 py-3.5 lg:py-4 rounded-full font-semibold hover:bg-[#F4B400]/10 transition-colors">
+      Learn More
+    </button>
+  </Link>
+</div>
           </div>
 
 
