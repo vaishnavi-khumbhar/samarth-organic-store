@@ -34,7 +34,7 @@ import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import RelatedProducts from "../components/RelatedProducts/RelatedProducts";
 
-const weightOptions = ["250ml", "500ml", "1L"];
+const DEFAULT_WEIGHTS = ["250ml", "500ml", "1L"];
 
 const toNumber = (val) => {
   if (typeof val === "number") return val;
@@ -49,8 +49,21 @@ const ProductDetails = () => {
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
 
+  // ---- Build the size options this product actually has ----
+  // If product.sizes exists (new products from the PDF), use those real
+  // label/price/mrp combos. Otherwise fall back to the old generic weight
+  // list with the product's single price/mrp — old products keep working
+  // exactly as before, no breakage.
+  const sizeOptions = product?.sizes?.length
+    ? product.sizes
+    : DEFAULT_WEIGHTS.map((label) => ({
+        label,
+        price: toNumber(product?.price),
+        mrp: product?.mrp ? toNumber(product.mrp) : null,
+      }));
+
   const [qty, setQty] = useState(1);
-  const [weight, setWeight] = useState(weightOptions[1]);
+  const [selectedSize, setSelectedSize] = useState(sizeOptions[1] || sizeOptions[0]);
   const [shareOpen, setShareOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -62,12 +75,6 @@ const ProductDetails = () => {
   // ---- Mobile tap-to-zoom modal ----
   const [mobileZoomOpen, setMobileZoomOpen] = useState(false);
 
-  // ---- Viewport-based mobile detection (matches the md: 768px breakpoint
-  // used everywhere else on this page). We deliberately do NOT use
-  // matchMedia("(hover: none)") here — device-preview tools, touchscreen
-  // laptops, and some tablets report hover as available even at phone-sized
-  // viewports, which silently breaks tap-to-zoom. Width is a more reliable
-  // signal here and stays consistent with the rest of the layout.
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" ? window.innerWidth < 768 : false
   );
@@ -78,6 +85,20 @@ const ProductDetails = () => {
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
+
+  // Reset the selected size whenever the product changes (navigating between products)
+  useEffect(() => {
+    if (product?.sizes?.length) {
+      setSelectedSize(product.sizes[Math.min(1, product.sizes.length - 1)]);
+    } else {
+      setSelectedSize({
+        label: DEFAULT_WEIGHTS[1],
+        price: toNumber(product?.price),
+        mrp: product?.mrp ? toNumber(product.mrp) : null,
+      });
+    }
+    setQty(1);
+  }, [product]);
 
   if (!product) {
     return (
@@ -97,27 +118,34 @@ const ProductDetails = () => {
   }
 
   const wished = isInWishlist(product.id);
-  const priceNum = toNumber(product.price);
-  const mrpNum = product.mrp ? toNumber(product.mrp) : null;
+
+  // ---- Price + MRP / discount — now driven by the SELECTED SIZE, not the base product ----
+  const priceNum = selectedSize?.price ?? toNumber(product.price);
+  const mrpNum = selectedSize?.mrp ?? (product.mrp ? toNumber(product.mrp) : null);
   const discountPct = mrpNum && mrpNum > priceNum ? Math.round((1 - priceNum / mrpNum) * 100) : 0;
 
   const handleAddToCart = () => {
-    addToCart({ ...product, quantity: qty, weight });
+    addToCart({
+      ...product,
+      quantity: qty,
+      weight: selectedSize.label,
+      price: priceNum, // the actual selected size's price, not the base product price
+    });
     navigate("/cart");
   };
 
- const handleBuyNow = () => {
-  addToCart({
-    ...product,
-    quantity: qty,
-    weight,
-  });
-
-  navigate("/cart");
-};
+  const handleBuyNow = () => {
+    addToCart({
+      ...product,
+      quantity: qty,
+      weight: selectedSize.label,
+      price: priceNum,
+    });
+    navigate("/cart");
+  };
 
   const whatsappMessage = encodeURIComponent(
-    `Hi, I'd like to order ${qty} x ${product.name} (${weight}) - ${product.price}`
+    `Hi, I'd like to order ${qty} x ${product.name} (${selectedSize.label}) - ₹${priceNum}`
   );
 
   const pageUrl = typeof window !== "undefined" ? window.location.href : "";
@@ -160,7 +188,6 @@ const ProductDetails = () => {
     },
   ];
 
-  // Only track zoom position via real mouse movement (desktop) — touch devices skip this
   const handleMouseMove = (e) => {
     const rect = imageWrapRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -194,15 +221,12 @@ const ProductDetails = () => {
           <div className="md:sticky md:top-24">
             <div className="relative flex gap-4">
 
-              {/* Main image box — hover-zoom on desktop, tap-to-zoom on mobile */}
               <div
                 ref={imageWrapRef}
                 onMouseEnter={() => setZoomActive(true)}
                 onMouseLeave={() => setZoomActive(false)}
                 onMouseMove={handleMouseMove}
                 onClick={() => {
-                  // Width-based check (matches md: 768px breakpoint used across
-                  // this page), not hover-capability — see isMobile state above.
                   if (isMobile) {
                     setMobileZoomOpen(true);
                   }
@@ -216,7 +240,6 @@ const ProductDetails = () => {
                   Organic
                 </span>
 
-                {/* Tap-to-zoom hint, mobile only */}
                 <span className="sm:hidden absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 bg-white/95 text-[#7A2418] text-[11px] font-semibold px-3 py-1.5 rounded-full shadow-sm">
                   <ZoomIn size={12} /> View Product
                 </span>
@@ -305,7 +328,6 @@ const ProductDetails = () => {
                 />
               </div>
 
-              {/* Desktop hover-zoom pane — needs real mouse hover, so md+ (not lg+, so it works on more screens) */}
               {zoomActive && (
                 <div
                   className="hidden md:block flex-1 rounded-3xl overflow-hidden border border-[#F0E4CE] shadow-[0_8px_30px_-12px_rgba(122,36,24,0.15)] bg-[#FBF6EC]"
@@ -366,10 +388,11 @@ const ProductDetails = () => {
               <span className="text-xs text-[#8a8178]">(120+ reviews)</span>
             </div>
 
+            {/* Price now reflects the SELECTED SIZE */}
             <div className="flex items-center gap-3 mt-4 flex-wrap">
               <p className="text-[#4D9F38] text-3xl font-bold">
                 ₹{priceNum}
-                <span className="text-sm font-medium text-[#8a8178] ml-1.5">/ {weight}</span>
+                <span className="text-sm font-medium text-[#8a8178] ml-1.5">/ {selectedSize.label}</span>
               </p>
 
               {mrpNum && mrpNum > priceNum && (
@@ -397,21 +420,22 @@ const ProductDetails = () => {
 
             <div className="h-px bg-[#F0E4CE] my-6" />
 
+            {/* Size + Quantity — size buttons now come from product.sizes (real prices) */}
             <div className="flex flex-wrap gap-6">
               <div>
-                <p className="text-xs font-semibold text-[#312E2A] mb-2 uppercase tracking-wide">Weight</p>
-                <div className="flex gap-2">
-                  {weightOptions.map((w) => (
+                <p className="text-xs font-semibold text-[#312E2A] mb-2 uppercase tracking-wide">Size</p>
+                <div className="flex flex-wrap gap-2">
+                  {sizeOptions.map((s) => (
                     <button
-                      key={w}
-                      onClick={() => setWeight(w)}
+                      key={s.label}
+                      onClick={() => setSelectedSize(s)}
                       className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-all ${
-                        weight === w
+                        selectedSize.label === s.label
                           ? "bg-[#7A2418] text-white border-[#7A2418] shadow-sm"
                           : "bg-white text-[#312E2A] border-[#E5DCC8] hover:border-[#7A2418]"
                       }`}
                     >
-                      {w}
+                      {s.label}
                     </button>
                   ))}
                 </div>
@@ -439,7 +463,6 @@ const ProductDetails = () => {
               </div>
             </div>
 
-            {/* Desktop-only inline buttons */}
             <div className="hidden md:flex items-center gap-3 mt-8">
               <button
                 onClick={handleAddToCart}
@@ -500,8 +523,7 @@ const ProductDetails = () => {
         </div>
       </section>
 
-      {/* Mobile sticky action bar — portaled to <body> so no ancestor (backdrop-blur,
-          overflow-hidden, transform, etc.) can trap this fixed element and hide/squash it */}
+      {/* Mobile sticky action bar */}
       {createPortal(
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-[9999] bg-white border-t border-[#F0E4CE] px-4 py-3 flex items-center gap-2.5 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)]">
           <button

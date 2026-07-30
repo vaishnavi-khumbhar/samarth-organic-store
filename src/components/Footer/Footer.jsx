@@ -4,7 +4,6 @@ import {
   Phone,
   Mail,
   MapPin,
-  ArrowUpRight,
 } from "lucide-react";
 import logo from "../../assets/logo.png";
 
@@ -12,8 +11,7 @@ import {
   FaFacebook,
   FaInstagram,
   FaWhatsapp,
-    FaYoutube,
-
+  FaYoutube,
 } from "react-icons/fa";
 
 const BRAND = "#7A2418";
@@ -27,12 +25,14 @@ const quickLinks = [
   { label: "Contact", to: "/contact" },
 ];
 
+// One link per category — matches the navbar mega menu categories
 const products = [
-  { label: "Products", to: "/products" },
-  { label: "Sesame Oil",to: "/products" },
-  { label: "Coconut Oil", to: "/products"},
-  { label: "Mustard Oil", to: "/products" },
-  { label: "Sunflower Oil",to: "/products" },
+  { label: "Wood Pressed Oils", to: "/products" },
+  { label: "Hair Oils", to: "/products" },
+  { label: "Natural Jaggery", to: "/products" },
+  { label: "Handmade Soaps", to: "/products" },
+  { label: "Natural Honey", to: "/products" },
+  { label: "Pure Ghee", to: "/products" },
 ];
 
 const socials = [
@@ -40,7 +40,6 @@ const socials = [
   { icon: FaInstagram, href: "#", label: "Instagram" },
   { icon: FaWhatsapp, href: "#", label: "WhatsApp" },
   { icon: FaYoutube, href: "#", label: "YouTube" },
-
 ];
 
 const fadeUp = {
@@ -60,7 +59,6 @@ const Footer = () => {
 
   return (
     <footer className="relative bg-white text-[#312E2A] overflow-hidden border-t border-[#7A2418]/10">
-      {/* Ambient glows */}
       <div className="absolute top-0 left-1/4 w-72 h-72 bg-[#4D9F38]/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-[#F5B800]/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -69,31 +67,29 @@ const Footer = () => {
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, amount: 0.15 }}
-className="relative max-w-7xl mx-auto px-5 pt-10 pb-8 sm:pt-12 sm:pb-6"      >
+        className="relative max-w-7xl mx-auto px-5 pt-10 pb-8 sm:pt-12 sm:pb-6"
+      >
         <div className="grid lg:grid-cols-4 gap-12 lg:gap-10 text-center lg:text-left">
 
           {/* About + Logo */}
           <motion.div variants={fadeUp} className="flex flex-col items-center lg:items-start">
+            <div className="flex flex-col items-center lg:items-start">
+              <div className="w-28 h-20 rounded-2xl overflow-hidden shadow-md border border-[#7A2418]/10 flex items-center justify-center">
+                <img
+                  src={logo}
+                  alt="Samarth Organic Oil"
+                  className="w-full h-full object-contain p-1 transition-transform duration-300 hover:scale-105"
+                />
+              </div>
 
-          <div className="flex flex-col items-center lg:items-start">
-
-  <div className="w-28 h-20 rounded-2xl overflow-hidden shadow-md border border-[#7A2418]/10 flex items-center justify-center">
-    <img
-      src={logo}
-      alt="Samarth Organic Oil"
-      className="w-full h-full object-contain p-1 transition-transform duration-300 hover:scale-105"
-    />
-  </div>
-
-  <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-wide text-[#7A2418]">
-    Samarth <span className="text-[#7A2418]">Organic</span>
-  </h2>
-
-</div>
+              <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-wide text-[#7A2418]">
+                Samarth <span className="text-[#7A2418]">Organic</span>
+              </h2>
+            </div>
 
             <p className="mt-5 text-gray-500 leading-7 sm:leading-8 text-sm sm:text-base max-w-xs lg:max-w-none">
-              Experience pure, wood-pressed edible oils crafted from
-              premium seeds for a healthier lifestyle.
+              Experience pure, wood-pressed oils, natural jaggery, honey,
+              handmade soaps and ghee crafted the traditional way.
             </p>
 
             <div className="flex gap-3 mt-6 justify-center lg:justify-start">
@@ -115,13 +111,13 @@ className="relative max-w-7xl mx-auto px-5 pt-10 pb-8 sm:pt-12 sm:pb-6"      >
 
           {/* Quick Links */}
           <motion.div variants={fadeUp} className="flex flex-col items-center lg:items-start">
-           <h3 className="text-xl sm:text-2xl font-black tracking-wide relative inline-block pb-2 text-[#7A2418]">
-  Information
-  <span
-    className="absolute bottom-0 left-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0 w-10 h-1 rounded-full"
-    style={{ background: BRAND }}
-  />
-</h3>
+            <h3 className="text-xl sm:text-2xl font-black tracking-wide relative inline-block pb-2 text-[#7A2418]">
+              Information
+              <span
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0 w-10 h-1 rounded-full"
+                style={{ background: BRAND }}
+              />
+            </h3>
 
             <ul className="space-y-3.5 mt-6">
               {quickLinks.map((item, i) => (
@@ -142,15 +138,15 @@ className="relative max-w-7xl mx-auto px-5 pt-10 pb-8 sm:pt-12 sm:pb-6"      >
             </ul>
           </motion.div>
 
-          {/* Products */}
+          {/* Products — one link per category */}
           <motion.div variants={fadeUp} className="flex flex-col items-center lg:items-start">
-          <h3 className="text-xl sm:text-2xl font-extrabold tracking-wide relative inline-block pb-2 text-[#7A2418]">
-  Products
-  <span
-    className="absolute bottom-0 w-10 h-1 rounded-full left-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0"
-    style={{ background: BRAND }}
-  />
-</h3>
+            <h3 className="text-xl sm:text-2xl font-extrabold tracking-wide relative inline-block pb-2 text-[#7A2418]">
+              Products
+              <span
+                className="absolute bottom-0 w-10 h-1 rounded-full left-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0"
+                style={{ background: BRAND }}
+              />
+            </h3>
 
             <ul className="space-y-3.5 mt-6">
               {products.map((item, i) => (
@@ -173,14 +169,13 @@ className="relative max-w-7xl mx-auto px-5 pt-10 pb-8 sm:pt-12 sm:pb-6"      >
 
           {/* Contact */}
           <motion.div variants={fadeUp} className="flex flex-col items-center lg:items-start">
-           <h3 className="text-xl sm:text-2xl font-black tracking-wide relative inline-block pb-3 text-[#7A2418]">
-  Contact Us
-  <span
-    className="absolute bottom-0 left-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0 w-10 h-1 rounded-full"
-    style={{ background: BRAND }}
-  />
-</h3>
-          
+            <h3 className="text-xl sm:text-2xl font-black tracking-wide relative inline-block pb-3 text-[#7A2418]">
+              Contact Us
+              <span
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0 w-10 h-1 rounded-full"
+                style={{ background: BRAND }}
+              />
+            </h3>
 
             <div className="space-y-4 mt-6 w-full flex flex-col items-center lg:items-start">
               {[
@@ -195,9 +190,9 @@ className="relative max-w-7xl mx-auto px-5 pt-10 pb-8 sm:pt-12 sm:pb-6"      >
                       style={{ backgroundColor: "rgba(122,36,24,0.08)" }}
                     >
                       <Icon
-  size={16}
-  className="transition-colors duration-300 text-[#7A2418] group-hover:text-[#7A2418]"
-/>
+                        size={16}
+                        className="transition-colors duration-300 text-[#7A2418] group-hover:text-[#7A2418]"
+                      />
                     </div>
                     <span className="text-gray-500 group-hover:text-[#312E2A] transition-colors duration-200 text-sm sm:text-base leading-6 pt-1.5 text-left">
                       {text}
@@ -218,9 +213,9 @@ className="relative max-w-7xl mx-auto px-5 pt-10 pb-8 sm:pt-12 sm:pb-6"      >
 
       {/* Bottom bar */}
       <div
-  className="relative border-t mt-2 pb-20 sm:pb-6"
-  style={{ borderColor: "rgba(122,36,24,0.4)" }}
->
+        className="relative border-t mt-2 pb-20 sm:pb-6"
+        style={{ borderColor: "rgba(122,36,24,0.4)" }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5">
 
           <p className="text-center text-[11px] sm:text-sm text-gray-500 leading-6">
@@ -228,19 +223,17 @@ className="relative max-w-7xl mx-auto px-5 pt-10 pb-8 sm:pt-12 sm:pb-6"      >
           </p>
 
           <p className="mt-2 text-center text-[13px] sm:text-sm text-gray-500 leading-6 flex items-center justify-center gap-1 flex-wrap">
-  Designed &amp; Developed By{" "}
-
-  <a
-    href="https://www.advertisingandbrandingmarketing.com/"
-    target="_blank"
-    rel="noopener noreferrer"
-    className="font-semibold inline-flex items-center gap-0.5 hover:underline transition-colors"
-    style={{ color: BRAND }}
-  >
-    Advertising Branding &amp; Marketing
-   
-  </a>
-</p>
+            Designed &amp; Developed By{" "}
+            <a
+              href="https://www.advertisingandbrandingmarketing.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold inline-flex items-center gap-0.5 hover:underline transition-colors"
+              style={{ color: BRAND }}
+            >
+              Advertising Branding &amp; Marketing
+            </a>
+          </p>
         </div>
       </div>
 

@@ -9,14 +9,11 @@ import { products } from "../data/products";
 const productsBanner =
   "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=1600&q=80";
 
-const oilChips = [
-  "Groundnut Oil",
-  "Sesame Oil",
-  "Coconut Oil",
-  "Sunflower Oil",
-  "Mustard Oil",
-  "Flaxseed Oil",
-  "Almond Oil",
+// Chips now reflect every category actually present in products.js
+// (Oils, Hair Oils, Jaggery, Soap, Honey, Ghee) instead of only oil names,
+// so this stays correct automatically if new categories are added later.
+const categoryChips = [
+  ...new Set(products.map((item) => item.category || "Oils")),
 ];
 
 const fadeUp = {
@@ -54,8 +51,14 @@ const ProductsPage = () => {
     }
 
     // Category
+    // FIX: was comparing item.name to filters.category, which meant a
+    // category like "Soap" never matched any product name. Now compares
+    // against item.category (falling back to "Oils" for the original 8
+    // entries that predate the category field).
     if (filters.category !== "All Products") {
-      data = data.filter((item) => item.name === filters.category);
+      data = data.filter(
+        (item) => (item.category || "Oils") === filters.category
+      );
     }
 
     // Price
@@ -127,15 +130,14 @@ const ProductsPage = () => {
         explicit min-height, this section would have no real height of its
         own and the overlap would swallow it entirely.
       */}
-      <section className="relative overflow-hidden min-h-[480px] sm:min-h-[520px] lg:min-h-[540px]">
-
+      <section className="relative overflow-hidden min-h-[460px] xs:min-h-[500px] sm:min-h-[520px] lg:min-h-[540px]">
         <div className="absolute inset-0">
           <motion.img
             initial={{ scale: 1.15 }}
             animate={{ scale: 1 }}
             transition={{ duration: 1.4 }}
             src={productsBanner}
-            alt="Organic Oil Products"
+            alt="Samarth Organic Products"
             loading="eager"
             className="w-full h-full object-cover"
           />
@@ -169,10 +171,9 @@ const ProductsPage = () => {
           className="
           relative
           container-width
-          pt-16
-          sm:pt-20
-          pb-12
-          sm:pb-20
+          px-4 sm:px-6
+          pt-12 xs:pt-14 sm:pt-20
+          pb-10 xs:pb-12 sm:pb-20
           text-center
           "
         >
@@ -184,9 +185,9 @@ const ProductsPage = () => {
             backdrop-blur-sm
             text-[#F5B800]
             border border-white/20
-            px-5 py-2
+            px-4 sm:px-5 py-1.5 sm:py-2
             rounded-full
-            text-xs
+            text-[10px] sm:text-xs
             font-semibold
             uppercase
             tracking-widest
@@ -198,28 +199,35 @@ const ProductsPage = () => {
           <motion.h1
             variants={fadeUp}
             className="
-            text-3xl
+            text-2xl
+            xs:text-3xl
             sm:text-5xl
             md:text-6xl
             font-bold
-            mt-5
+            mt-4 sm:mt-5
             text-white
+            leading-tight
             "
           >
-            100% Pure Wood Pressed
-            <span className="text-[#F5B800]"> Organic Oils</span>
+            Pure, Natural &amp;
+            <span className="text-[#F5B800]"> Traditionally Made</span>
           </motion.h1>
 
           <motion.p
             variants={fadeUp}
             className="
-            mt-5
-            max-w-2xl
+            mt-4 sm:mt-5
+            max-w-md sm:max-w-2xl
             mx-auto
             text-white/80
+            text-sm sm:text-base
+            leading-6 sm:leading-7
             "
           >
-            Premium cold pressed organic oils made using traditional Lakdi Ghana process.
+            From Wood Pressed Oils and Hair Oils to Natural Honey, Handmade
+            Soaps, Traditional Jaggery and Pure Gir Cow Ghee — every product
+            is made using authentic, chemical-free methods for a healthier,
+            more natural lifestyle.
           </motion.p>
 
           <motion.div
@@ -227,11 +235,11 @@ const ProductsPage = () => {
             className="
             flex flex-wrap
             justify-center
-            gap-3
-            mt-8
+            gap-2 sm:gap-3
+            mt-6 sm:mt-8
             "
           >
-            {oilChips.map((chip, index) => (
+            {categoryChips.map((chip, index) => (
               <span
                 key={index}
                 className="
@@ -239,10 +247,11 @@ const ProductsPage = () => {
                 border
                 border-white/20
                 text-white
-                px-4
-                py-2
+                px-3 sm:px-4
+                py-1.5 sm:py-2
                 rounded-full
-                text-sm
+                text-[11px] sm:text-sm
+                whitespace-nowrap
                 "
               >
                 {chip}

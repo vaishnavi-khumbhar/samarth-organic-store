@@ -1,5 +1,4 @@
-import {
-  Search,
+import { 
   RotateCcw,
   SlidersHorizontal,
   Package,
@@ -45,11 +44,11 @@ const ProductFilter = ({ filters, setFilters }) => {
               </div>
 
               <h2 className="mt-3 text-2xl sm:text-3xl font-bold text-[#2F2B28]">
-                Find Your Favourite Oil
+                Find Your Favourite Product
               </h2>
 
               <p className="text-gray-500 mt-2">
-                Search, Filter and Sort Products Easily.
+                Filter and Sort Products Easily.
               </p>
 
             </div>
@@ -65,27 +64,6 @@ const ProductFilter = ({ filters, setFilters }) => {
           </div>
 
           <div className="p-5 sm:p-8">
-
-            {/* SEARCH */}
-
-            <div className="relative mb-7">
-
-              <Search
-                size={18}
-                className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"
-              />
-
-              <input
-                type="text"
-                placeholder="Search Organic Oils..."
-                value={filters.search}
-                onChange={(e) =>
-                  handleChange("search", e.target.value)
-                }
-                className="w-full h-14 rounded-2xl bg-[#FAF7F2] border border-[#ECE2D0] pl-14 pr-5 outline-none focus:border-[#4D9F38] focus:ring-4 focus:ring-[#4D9F38]/10"
-              />
-
-            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
 
@@ -112,19 +90,53 @@ const ProductFilter = ({ filters, setFilters }) => {
                   className="w-full h-14 rounded-xl border border-[#ECE2D0] bg-[#FAF7F2] px-5 outline-none"
                 >
                   <option>All Products</option>
-                  <option>Groundnut Oil</option>
-                  <option>Sesame Oil</option>
-                  <option>Coconut Oil</option>
-                  <option>Sunflower Oil</option>
-                  <option>Mustard Oil</option>
-                  <option>Flaxseed Oil</option>
-                  <option>Almond Oil</option>
-                  <option>Walnut Oil</option>
+
+                  <optgroup label="Wood Pressed Oils">
+                    <option>Groundnut Oil</option>
+                    <option>Sesame Oil</option>
+                    <option>Coconut Oil</option>
+                    <option>Sunflower Oil</option>
+                    <option>Mustard Oil</option>
+                    <option>Flexseed Oil</option>
+                    <option>Almond Oil</option>
+                    <option>Walnut Oil</option>
+                    <option>Safflower Oil</option>
+                    <option>Castor Oil</option>
+                  </optgroup>
+
+                  <optgroup label="Hair Oils">
+                    <option>Onion Hair Oil</option>
+                    <option>Curry Leaves Hair Oil</option>
+                  </optgroup>
+
+                  <optgroup label="Natural Jaggery">
+                    <option>Jaggery Powder</option>
+                    <option>Jaggery Candy</option>
+                    <option>Liquid Jaggery</option>
+                    <option>Jaggery</option>
+                  </optgroup>
+
+                  <optgroup label="Handmade Soaps">
+                    <option>Aloe Vera Soap</option>
+                    <option>Multani Mitti Soap</option>
+                    <option>Neem Soap</option>
+                    <option>De-tan Soap</option>
+                    <option>Charcoal Soap</option>
+                  </optgroup>
+
+                  <optgroup label="Natural Honey">
+                    <option>Natural Tulsi Honey</option>
+                    <option>Forest Honey</option>
+                  </optgroup>
+
+                  <optgroup label="Pure Ghee">
+                    <option>Gir Cow Ghee</option>
+                  </optgroup>
                 </select>
 
               </div>
 
-                            {/* PRICE */}
+              {/* PRICE */}
 
               <div>
                 <label className="flex items-center gap-2 mb-3 font-semibold">
@@ -143,10 +155,11 @@ const ProductFilter = ({ filters, setFilters }) => {
                   className="w-full h-14 rounded-xl border border-[#ECE2D0] bg-[#FAF7F2] px-5 outline-none"
                 >
                   <option>All Prices</option>
-                  <option>Under ₹400</option>
-                  <option>₹400 - ₹600</option>
-                  <option>₹600 - ₹800</option>
-                  <option>₹800+</option>
+                  <option>Under ₹100</option>
+                  <option>₹100 - ₹300</option>
+                  <option>₹300 - ₹600</option>
+                  <option>₹600 - ₹1000</option>
+                  <option>₹1000+</option>
                 </select>
               </div>
 

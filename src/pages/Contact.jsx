@@ -10,7 +10,12 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import CTA from "../components/CTA/CTA";
-import { FaFacebookF, FaInstagram } from "react-icons/fa";
+import {
+  FaFacebookF,
+  FaInstagram,
+  FaYoutube,
+  FaWhatsapp,
+} from "react-icons/fa";
 
 const Contact = () => {
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
@@ -291,25 +296,48 @@ const Contact = () => {
                 </div>
               ))}
             </div>
+<div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4 mt-5">
 
-            <div className="relative flex gap-3 mt-8">
+  {/* Facebook */}
   <a
     href="https://www.facebook.com/"
     target="_blank"
     rel="noopener noreferrer"
-    className="w-10 h-10 rounded-full bg-white/10 hover:bg-[#D98A1E] flex items-center justify-center transition-colors"
+    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/10 hover:bg-[#1877F2] flex items-center justify-center transition-all duration-300 hover:scale-110"
   >
-    <FaFacebookF size={17} />
+    <FaFacebookF className="text-[16px] sm:text-[18px]" />
   </a>
 
+  {/* Instagram */}
   <a
     href="https://www.instagram.com/"
     target="_blank"
     rel="noopener noreferrer"
-    className="w-10 h-10 rounded-full bg-white/10 hover:bg-[#D98A1E] flex items-center justify-center transition-colors"
+    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/10 hover:bg-gradient-to-r hover:from-[#F58529] hover:via-[#DD2A7B] hover:to-[#8134AF] flex items-center justify-center transition-all duration-300 hover:scale-110"
   >
-    <FaInstagram size={17} />
+    <FaInstagram className="text-[16px] sm:text-[18px]" />
   </a>
+
+  {/* YouTube */}
+  <a
+    href="https://www.youtube.com/"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/10 hover:bg-[#FF0000] flex items-center justify-center transition-all duration-300 hover:scale-110"
+  >
+    <FaYoutube className="text-[16px] sm:text-[18px]" />
+  </a>
+
+  {/* WhatsApp */}
+  <a
+    href="https://wa.me/919876543210"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/10 hover:bg-[#25D366] flex items-center justify-center transition-all duration-300 hover:scale-110"
+  >
+    <FaWhatsapp className="text-[16px] sm:text-[18px]" />
+  </a>
+
 </div>
           </div>
         </div>

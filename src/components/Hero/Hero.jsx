@@ -114,25 +114,25 @@ const Hero = () => {
 
   <div className="relative z-10">
 
-      <h1 className="font-serif text-[34px] leading-[1.1] font-bold text-center">
-        <span className="text-[#8C3D2F] block">
-          100% Pure
-        </span>
+     <h1 className="font-serif text-[32px] leading-[1.1] font-bold text-center">
+  <span className="text-[#7A2418] block">
+    Premium Organic
+  </span>
 
-        <span className="block text-[#4D9F38]">
-          Wood Pressed
-        </span>
+  <span className="text-[#4D9F38] block">
+    Natural Products
+  </span>
 
-        <span className="block text-[#8C3D2F]">
-          Organic Oil
-        </span>
-      </h1>
+  <span className="text-[#7A2418] block">
+    For Healthy Living
+  </span>
+</h1>
 
-      <p className="mt-4 text-center text-[14px] leading-7 text-[#666]">
-        Healthy cooking begins with pure ingredients.
-        Traditional Lakdi Ghana extraction preserves
-        nutrients, aroma and authentic taste.
-      </p>
+<p className="mt-4 text-center text-[14px] leading-7 text-[#666]">
+  Explore our collection of Wood Pressed Oils, Natural Honey,
+  Handmade Soaps, Pure Gir Cow Ghee and Traditional Jaggery
+  products made with care for a healthier lifestyle.
+</p>
 
       {/* Buttons */}
 
@@ -204,16 +204,27 @@ className="rounded-xl bg-[#F9F7F2] py-2.5 border border-[#4D9F38]/15 text-center
         >
          
 
-          <h1 className="font-serif text-5xl lg:text-7xl font-bold mt-5 leading-[1.06] tracking-tight text-[#312E2A]">
-            100% Pure
-            <span className="block text-[#4D9F38]">Wood Pressed</span>
-            Organic Oil
-          </h1>
+        <h1 className="font-serif text-[30px] sm:text-[36px] lg:text-6xl font-bold leading-tight">
+  <span className="text-[#7A2418] block">
+    Premium Organic
+  </span>
 
-          <p className="mt-5 text-[#6B6B6B] text-sm lg:text-base leading-relaxed max-w-md">
-  Healthy cooking starts with pure ingredients. Experience natural
-  Cold Pressed Organic Oil rich in nutrients, aroma and authentic
-  taste.
+  <span className="text-[#4D9F38] block">
+    Natural Products
+  </span>
+
+  <span className="text-[#7A2418] block">
+    For Healthy Living
+  </span>
+</h1>
+
+<p className="mt-5 max-w-xl text-gray-600 text-sm sm:text-base leading-7">
+  Discover our premium collection of <span className="font-semibold text-[#7A2418]">Wood Pressed Oils</span>,
+  <span className="font-semibold text-[#7A2418]"> Natural Honey</span>,
+  <span className="font-semibold text-[#7A2418]"> Handmade Soaps</span>,
+  <span className="font-semibold text-[#7A2418]"> Jaggery Products</span> and
+  <span className="font-semibold text-[#7A2418]"> Pure Gir Cow Ghee</span>,
+  crafted to bring purity, nutrition and wellness to your everyday life.
 </p>
 
           <div className="mt-7 flex flex-wrap gap-4">
