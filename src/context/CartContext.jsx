@@ -1,18 +1,15 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext } from "react";
+import { useAccountStorage } from "../hooks/useAccountStorage";
 
 const CartContext = createContext();
 
 export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState(() => {
-    const saved = localStorage.getItem("samarth_cart");
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  useEffect(() => {
-    localStorage.setItem("samarth_cart", JSON.stringify(cart));
-  }, [cart]);
+  // FIX: was `useState(() => localStorage.getItem("samarth_cart"))` — one
+  // fixed key shared by every account on this browser. Now scoped per
+  // logged-in account (see hooks/useAccountStorage.js).
+  const [cart, setCart] = useAccountStorage("samarth_cart", []);
 
   const addToCart = (product) => {
     setCart((prev) => {

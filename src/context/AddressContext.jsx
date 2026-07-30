@@ -1,27 +1,21 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext } from "react";
+import { useAccountStorage } from "../hooks/useAccountStorage";
 
 const AddressContext = createContext();
 export const useAddress = () => useContext(AddressContext);
 
 export const AddressProvider = ({ children }) => {
-  const [addresses, setAddresses] = useState(() => {
-    const saved = localStorage.getItem("samarth_addresses");
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [selectedAddressId, setSelectedAddressId] = useState(() => {
-    return localStorage.getItem("samarth_selected_address") || null;
-  });
-
-  useEffect(() => {
-    localStorage.setItem("samarth_addresses", JSON.stringify(addresses));
-  }, [addresses]);
-
-  useEffect(() => {
-    if (selectedAddressId) {
-      localStorage.setItem("samarth_selected_address", selectedAddressId);
-    }
-  }, [selectedAddressId]);
+  // FIX: was two fixed keys ("samarth_addresses", "samarth_selected_address")
+  // shared by every account on this browser. Now scoped per logged-in
+  // account (see hooks/useAccountStorage.js). Note: this still stores
+  // addresses in the browser only — it isn't synced with the
+  // /api/addresses/* endpoints on the backend, so addresses won't follow
+  // you to a different browser/device. Happy to wire that up too if useful.
+  const [addresses, setAddresses] = useAccountStorage("samarth_addresses", []);
+  const [selectedAddressId, setSelectedAddressId] = useAccountStorage(
+    "samarth_selected_address",
+    null
+  );
 
   const addAddress = (address) => {
     const newAddr = { ...address, id: Date.now().toString() };

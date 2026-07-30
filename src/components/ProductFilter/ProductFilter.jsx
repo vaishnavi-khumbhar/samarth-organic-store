@@ -1,4 +1,4 @@
-import { 
+import {
   RotateCcw,
   SlidersHorizontal,
   Package,
@@ -6,7 +6,14 @@ import {
   ArrowUpDown,
 } from "lucide-react";
 
-const ProductFilter = ({ filters, setFilters }) => {
+// FIX: `categories` used to be a hardcoded list of individual PRODUCT
+// NAMES (e.g. "Groundnut Oil") grouped under fake <optgroup>s, while
+// ProductsPage filtered by `item.category` (e.g. "Oils"). Those two
+// never matched, so picking anything from this dropdown silently showed
+// zero results. It now takes the real category names from the database
+// (via the `categories` prop) so selecting one actually filters correctly
+// — and any new category you add in the admin panel shows up here too.
+const ProductFilter = ({ filters, setFilters, categories = [] }) => {
   const handleChange = (key, value) => {
     setFilters((prev) => ({
       ...prev,
@@ -91,47 +98,9 @@ const ProductFilter = ({ filters, setFilters }) => {
                 >
                   <option>All Products</option>
 
-                  <optgroup label="Wood Pressed Oils">
-                    <option>Groundnut Oil</option>
-                    <option>Sesame Oil</option>
-                    <option>Coconut Oil</option>
-                    <option>Sunflower Oil</option>
-                    <option>Mustard Oil</option>
-                    <option>Flexseed Oil</option>
-                    <option>Almond Oil</option>
-                    <option>Walnut Oil</option>
-                    <option>Safflower Oil</option>
-                    <option>Castor Oil</option>
-                  </optgroup>
-
-                  <optgroup label="Hair Oils">
-                    <option>Onion Hair Oil</option>
-                    <option>Curry Leaves Hair Oil</option>
-                  </optgroup>
-
-                  <optgroup label="Natural Jaggery">
-                    <option>Jaggery Powder</option>
-                    <option>Jaggery Candy</option>
-                    <option>Liquid Jaggery</option>
-                    <option>Jaggery</option>
-                  </optgroup>
-
-                  <optgroup label="Handmade Soaps">
-                    <option>Aloe Vera Soap</option>
-                    <option>Multani Mitti Soap</option>
-                    <option>Neem Soap</option>
-                    <option>De-tan Soap</option>
-                    <option>Charcoal Soap</option>
-                  </optgroup>
-
-                  <optgroup label="Natural Honey">
-                    <option>Natural Tulsi Honey</option>
-                    <option>Forest Honey</option>
-                  </optgroup>
-
-                  <optgroup label="Pure Ghee">
-                    <option>Gir Cow Ghee</option>
-                  </optgroup>
+                  {categories.map((cat) => (
+                    <option key={cat}>{cat}</option>
+                  ))}
                 </select>
 
               </div>

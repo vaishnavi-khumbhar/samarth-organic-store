@@ -9,25 +9,28 @@ import oil8 from "../assets/images/products/oil8.jpg";
 
 // NEW — add these image files in src/assets/images/products/ and import here
 // Dummy images (replace with actual images later)
-const safflowerOil = oil1;
-const castorOil = oil2;
-const onionHairOil = oil3;
-const curryLeavesOil = oil4;
-const jaggeryPowder = oil5;
-const jaggeryCandy = oil6;
-const liquidJaggery = oil7;
-const jaggery = oil8;
+// New Products
+import safflowerOil from "../assets/images/products/safflower-oil.jpg";
+import castorOil from "../assets/images/products/castor-oil.jpg";
 
-const aloeVeraSoap = oil1;
-const multaniMittiSoap = oil2;
-const neemSoap = oil3;
-const detanSoap = oil4;
-const charcoalSoap = oil5;
+import onionHairOil from "../assets/images/products/onion-hair-oil.jpg";
+import curryLeavesOil from "../assets/images/products/curry-leaves-hair-oil.png";
 
-const tulsiHoney = oil6;
-const forestHoney = oil7;
+import jaggeryPowder from "../assets/images/products/jaggery-powder.jpg";
+import jaggeryCandy from "../assets/images/products/jaggery-candy.jpg";
+import liquidJaggery from "../assets/images/products/liquid-jaggery.png";
+import jaggery from "../assets/images/products/jaggery.png";
 
-const cowGhee = oil8;
+import aloeVeraSoap from "../assets/images/products/aloe-vera-soap.jpg";
+import multaniMittiSoap from "../assets/images/products/multani-mitti-soap.jpg";
+import neemSoap from "../assets/images/products/neem-soap.jpg";
+import detanSoap from "../assets/images/products/detan-soa.jpg";
+import charcoalSoap from "../assets/images/products/charcoal-soap.png";
+
+import tulsiHoney from "../assets/images/products/tulsi-honey.jpg";
+import forestHoney from "../assets/images/products/forest-honey.png";
+
+import cowGhee from "../assets/images/products/gir-cow-ghee.jpg";
 
 export const products = [
   // ---------------- EXISTING OILS ----------------

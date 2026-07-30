@@ -45,7 +45,7 @@ const Wishlist = () => {
               <div className="p-5">
 
                 <img
-                  src={item.image}
+                  src={item.image_url || item.image}
                   alt={item.name}
                   className="h-56 object-contain mx-auto"
                 />
@@ -55,7 +55,7 @@ const Wishlist = () => {
 </h3>
 
                 <p className="text-[#4D9F38] text-xl font-bold text-center mt-2">
-                  {item.price}
+                  ₹{item.price}
                 </p>
 
                 <button

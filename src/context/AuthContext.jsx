@@ -6,7 +6,7 @@ import {
   useRef,
 } from "react";
 
-import { loginUser, signupUser } from "../utils/api";
+import { loginUser, signupUser, updateProfile } from "../utils/api";
 
 const AuthContext = createContext();
 
@@ -87,6 +87,18 @@ export const AuthProvider = ({ children }) => {
     afterLoginRef.current = null;
   };
 
+  // FIX: Profile.jsx's "Edit Profile" / Account Settings save button expects
+  // an `updateUser` function on this context. It didn't exist before, so
+  // saving profile edits silently failed. Calls PUT-style
+  // POST /api/auth/update_profile.php, then updates local state + the
+  // localStorage-persisted user so the change survives a refresh.
+  const updateUser = async (payload) => {
+    const res = await updateProfile(payload);
+    const data = res.data;
+    setUser(data.user);
+    return data.user;
+  };
+
   const requireLogin = (onSuccess) => {
     if (isLoggedIn) {
       onSuccess?.();
@@ -118,6 +130,7 @@ export const AuthProvider = ({ children }) => {
         login,
         signup,
         logout,
+        updateUser,
 
         requireLogin,
         openLoginModal,

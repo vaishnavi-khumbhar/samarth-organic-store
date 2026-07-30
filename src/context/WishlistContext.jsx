@@ -1,18 +1,15 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext } from "react";
+import { useAccountStorage } from "../hooks/useAccountStorage";
 
 const WishlistContext = createContext();
 
 export const useWishlist = () => useContext(WishlistContext);
 
 export const WishlistProvider = ({ children }) => {
-  const [wishlist, setWishlist] = useState(() => {
-    const saved = localStorage.getItem("samarth_wishlist");
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  useEffect(() => {
-    localStorage.setItem("samarth_wishlist", JSON.stringify(wishlist));
-  }, [wishlist]);
+  // FIX: was `useState(() => localStorage.getItem("samarth_wishlist"))` —
+  // one fixed key shared by every account on this browser. Now scoped per
+  // logged-in account (see hooks/useAccountStorage.js).
+  const [wishlist, setWishlist] = useAccountStorage("samarth_wishlist", []);
 
   const addToWishlist = (product) => {
     setWishlist((prev) => {

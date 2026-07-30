@@ -1,20 +1,14 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 
 import ProductFilter from "../components/ProductFilter/ProductFilter";
 import FeaturedProducts from "../components/FeaturedProducts/FeaturedProducts";
 
-import { products } from "../data/products";
+import { useProducts } from "../hooks/useProducts";
+import { fetchCategories } from "../utils/api";
 
 const productsBanner =
   "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=1600&q=80";
-
-// Chips now reflect every category actually present in products.js
-// (Oils, Hair Oils, Jaggery, Soap, Honey, Ghee) instead of only oil names,
-// so this stays correct automatically if new categories are added later.
-const categoryChips = [
-  ...new Set(products.map((item) => item.category || "Oils")),
-];
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -32,7 +26,46 @@ const containerVariants = {
   },
 };
 
+// price now comes back from the API as a real number (e.g. 230.0), not a
+// string like "₹230" — this just guards against either shape safely.
+const getPrice = (price) => {
+  if (typeof price === "number") return price;
+  return Number(String(price).replace(/[₹,]/g, "")) || 0;
+};
+
 const ProductsPage = () => {
+  // FIX: this page used to `import { products } from "../data/products"` —
+  // a hardcoded dummy array — so nothing added/edited/deleted in the admin
+  // panel could ever show up here, no matter what was in the database.
+  // useProducts() calls the real /api/products/index.php endpoint instead.
+  const { products, loading, error } = useProducts();
+
+  // Real category names for the filter dropdown + hero chips, pulled from
+  // /api/categories/index.php (falls back to whatever categories are
+  // present on the loaded products if that call fails for any reason).
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchCategories()
+      .then((res) => {
+        if (!cancelled) {
+          setCategories((res.data?.categories || []).map((c) => c.name));
+        }
+      })
+      .catch(() => {
+        /* handled by the products-derived fallback below */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const categoryChips = useMemo(() => {
+    if (categories.length) return categories;
+    return [...new Set(products.map((p) => p.category).filter(Boolean))];
+  }, [categories, products]);
+
   const [filters, setFilters] = useState({
     search: "",
     category: "All Products",
@@ -50,42 +83,35 @@ const ProductsPage = () => {
       );
     }
 
-    // Category
-    // FIX: was comparing item.name to filters.category, which meant a
-    // category like "Soap" never matched any product name. Now compares
-    // against item.category (falling back to "Oils" for the original 8
-    // entries that predate the category field).
+    // Category — matches against the real `category` column from the DB
     if (filters.category !== "All Products") {
-      data = data.filter(
-        (item) => (item.category || "Oils") === filters.category
-      );
+      data = data.filter((item) => item.category === filters.category);
     }
 
     // Price
-    if (filters.price === "Under ₹400") {
-      data = data.filter(
-        (item) => Number(item.price.replace("₹", "")) < 400
-      );
+    if (filters.price === "Under ₹100") {
+      data = data.filter((item) => getPrice(item.price) < 100);
     }
-
-    if (filters.price === "₹400 - ₹600") {
+    if (filters.price === "₹100 - ₹300") {
       data = data.filter((item) => {
-        const price = Number(item.price.replace("₹", ""));
-        return price >= 400 && price <= 600;
+        const p = getPrice(item.price);
+        return p >= 100 && p <= 300;
       });
     }
-
-    if (filters.price === "₹600 - ₹800") {
+    if (filters.price === "₹300 - ₹600") {
       data = data.filter((item) => {
-        const price = Number(item.price.replace("₹", ""));
-        return price > 600 && price <= 800;
+        const p = getPrice(item.price);
+        return p >= 300 && p <= 600;
       });
     }
-
-    if (filters.price === "₹800+") {
-      data = data.filter(
-        (item) => Number(item.price.replace("₹", "")) > 800
-      );
+    if (filters.price === "₹600 - ₹1000") {
+      data = data.filter((item) => {
+        const p = getPrice(item.price);
+        return p >= 600 && p <= 1000;
+      });
+    }
+    if (filters.price === "₹1000+") {
+      data = data.filter((item) => getPrice(item.price) > 1000);
     }
 
     // Sort
@@ -99,19 +125,11 @@ const ProductsPage = () => {
         break;
 
       case "Price : Low to High":
-        data.sort(
-          (a, b) =>
-            Number(a.price.replace("₹", "")) -
-            Number(b.price.replace("₹", ""))
-        );
+        data.sort((a, b) => getPrice(a.price) - getPrice(b.price));
         break;
 
       case "Price : High to Low":
-        data.sort(
-          (a, b) =>
-            Number(b.price.replace("₹", "")) -
-            Number(a.price.replace("₹", ""))
-        );
+        data.sort((a, b) => getPrice(b.price) - getPrice(a.price));
         break;
 
       default:
@@ -119,17 +137,11 @@ const ProductsPage = () => {
     }
 
     return data;
-  }, [filters]);
+  }, [filters, products]);
 
   return (
     <>
       {/* ================= HERO ================= */}
-      {/*
-        min-h is required because ProductFilter uses a negative top margin
-        to float up and overlap the bottom edge of this hero. Without an
-        explicit min-height, this section would have no real height of its
-        own and the overlap would swallow it entirely.
-      */}
       <section className="relative overflow-hidden min-h-[460px] xs:min-h-[500px] sm:min-h-[520px] lg:min-h-[540px]">
         <div className="absolute inset-0">
           <motion.img
@@ -261,10 +273,28 @@ const ProductsPage = () => {
         </motion.div>
       </section>
 
-      {/* FILTER — floats up over the hero's bottom edge via its own negative margin */}
-      <ProductFilter filters={filters} setFilters={setFilters} />
+      {/* FILTER */}
+      <ProductFilter filters={filters} setFilters={setFilters} categories={categories} />
 
-      <FeaturedProducts products={filteredProducts} />
+      {loading && (
+        <p className="text-center py-16 text-[#8a8178]">Loading products...</p>
+      )}
+
+      {!loading && error && (
+        <p className="text-center py-16 text-[#B23A3A]">
+          Products load karta aale nahi: {error}
+        </p>
+      )}
+
+      {!loading && !error && filteredProducts.length === 0 && (
+        <p className="text-center py-16 text-[#8a8178]">
+          Ya filter sathi konte pn product sapadle nahi.
+        </p>
+      )}
+
+      {!loading && !error && filteredProducts.length > 0 && (
+        <FeaturedProducts products={filteredProducts} />
+      )}
     </>
   );
 };

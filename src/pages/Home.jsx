@@ -10,9 +10,14 @@ import CounterSection from "../components/CounterSection/CounterSection";
 import Testimonials from "../components/Testimonials/Testimonials";
 import CTA from "../components/CTA/CTA";
 
-import { products } from "../data/products";
+import { useProducts } from "../hooks/useProducts";
 
 const Home = () => {
+  // FIX: was `import { products } from "../data/products"` (static dummy
+  // data). Now pulls the live catalog from the database via the PHP API,
+  // so anything added/edited in the admin panel shows up here too.
+  const { products, loading } = useProducts();
+
   return (
     <>
       <Hero />
@@ -26,7 +31,7 @@ const Home = () => {
       <Benefits />
 
       {/* Featured Products */}
-      <FeaturedProducts products={products} />
+      {!loading && <FeaturedProducts products={products} />}
 
       <WhyChooseUs />
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   User,
   Package,
@@ -15,9 +15,15 @@ import {
   EyeOff,
   Droplet,
   ShieldCheck,
+  X as XIcon,
+  ShoppingCart,
+  Trash2,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useAddress } from "../context/AddressContext";
+import { useWishlist } from "../context/WishlistContext";
+import { useCart } from "../context/CartContext";
+import { fetchMyOrders, cancelOrder } from "../utils/api";
 
 /*
   Design tokens
@@ -52,17 +58,71 @@ const GhaniMark = ({ size = 56, spin = false }) => (
 );
 
 const Profile = () => {
-  // isLoggedIn / user / logout now come from the shared AuthContext, so this
-  // page always reflects whatever the header / cart login flow already did.
-  const { user, isLoggedIn, loginWithPhone, updateUser, logout } = useAuth();
-  
+  // FIX: this page used to destructure `loginWithPhone` and `updateUser`
+  // from useAuth() — neither exists on AuthContext (it only exports
+  // `login(email, password)` and `signup(payload)`, both of which call the
+  // real PHP backend). Calling an undefined function inside handleAuthSubmit
+  // threw a silent runtime error, so submitting the form did nothing visible.
+  const { user, isLoggedIn, login, signup, logout, updateUser } = useAuth();
+
   const { addresses } = useAddress();
+  const { wishlist, removeFromWishlist } = useWishlist();
+  const { addToCart, isInCart } = useCart();
 
   const [authMode, setAuthMode] = useState("login"); // "login" | "signup"
   const [showPassword, setShowPassword] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState("");
   const [authForm, setAuthForm] = useState({ name: "", phone: "", email: "", password: "" });
   const [activeTab, setActiveTab] = useState("orders");
+
+  // ---- Real orders (was a hardcoded fake array before) ----
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersError, setOrdersError] = useState("");
+  const [cancellingId, setCancellingId] = useState(null);
+
+  // ---- Account Settings form (was uncontrolled inputs + a dead button) ----
+  const [settingsForm, setSettingsForm] = useState({
+    name: user?.name || "",
+    phone: user?.phone || "",
+    email: user?.email || "",
+  });
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsError, setSettingsError] = useState("");
+  const [settingsSuccess, setSettingsSuccess] = useState("");
+
+  // Keep the settings form in sync if `user` changes (e.g. right after login)
+  useEffect(() => {
+    setSettingsForm({
+      name: user?.name || "",
+      phone: user?.phone || "",
+      email: user?.email || "",
+    });
+  }, [user?.name, user?.phone, user?.email]);
+
+  // Load this account's real orders from GET /api/orders/list.php
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    let cancelled = false;
+    setOrdersLoading(true);
+    setOrdersError("");
+    fetchMyOrders()
+      .then((res) => {
+        if (!cancelled) setOrders(res.data?.orders || []);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setOrdersError(err?.response?.data?.error || "Orders load nahi zale.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setOrdersLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoggedIn]);
 
   const displayUser = {
     name: user?.name || "Guest",
@@ -71,12 +131,6 @@ const Profile = () => {
     joined: user?.joined ? new Date(user.joined).toLocaleDateString("en-IN", { month: "short", year: "numeric" }) : "",
   };
 
-  const orders = [
-    { id: "SO2401", date: "18 Jul 2026", items: "Groundnut Oil x2", total: "₹440", status: "Delivered" },
-    { id: "SO2398", date: "05 Jul 2026", items: "Sesame Oil, Mustard Oil", total: "₹450", status: "Delivered" },
-    { id: "SO2385", date: "22 Jun 2026", items: "Coconut Oil x1", total: "₹270", status: "Cancelled" },
-  ];
-
   const menuItems = [
     { id: "orders", label: "My Orders", icon: Package },
     { id: "addresses", label: "Saved Addresses", icon: MapPin },
@@ -84,34 +138,123 @@ const Profile = () => {
     { id: "settings", label: "Account Settings", icon: Settings },
   ];
 
+  // Matches the real `orders.status` ENUM from the database:
+  // pending, confirmed, processing, out_for_delivery, delivered, cancelled
+  const STATUS_LABELS = {
+    pending: "Pending",
+    confirmed: "Confirmed",
+    processing: "Processing",
+    out_for_delivery: "Out for Delivery",
+    delivered: "Delivered",
+    cancelled: "Cancelled",
+  };
+
   const statusStyle = (status) =>
-    status === "Delivered"
+    status === "delivered"
       ? { bar: "bg-[#2F7A38]", chip: "bg-[#E4F3E1] text-[#2F7A38]" }
-      : status === "Cancelled"
+      : status === "cancelled"
       ? { bar: "bg-[#B23A3A]", chip: "bg-[#FBE7E7] text-[#B23A3A]" }
       : { bar: "bg-[#C98A2B]", chip: "bg-[#FBEAD0] text-[#8A4B12]" };
+
+  // Only pending/confirmed/processing orders can still be cancelled —
+  // matches the guard on the backend (orders/cancel.php).
+  const canCancel = (status) => !["delivered", "cancelled"].includes(status);
+
+  const handleCancelOrder = async (order) => {
+    if (!window.confirm(`Order ${order.order_number} cancel karायचा aahe ka?`)) {
+      return;
+    }
+    setCancellingId(order.id);
+    try {
+      await cancelOrder(order.id);
+      setOrders((prev) =>
+        prev.map((o) => (o.id === order.id ? { ...o, status: "cancelled" } : o))
+      );
+    } catch (err) {
+      alert(err?.response?.data?.error || "Order cancel nahi zala, parat try kara.");
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   const handleAuthChange = (e) => {
     setAuthForm({ ...authForm, [e.target.name]: e.target.value });
   };
 
-  const handleAuthSubmit = (e) => {
+  const handleAuthSubmit = async (e) => {
     e.preventDefault();
-    setAuthLoading(true);
-    setTimeout(() => {
-      setAuthLoading(false);
-      loginWithPhone(authForm.phone);
-      if (authMode === "signup") {
-        updateUser({ name: authForm.name, email: authForm.email });
+    setAuthError("");
+
+    if (authMode === "signup") {
+      if (!authForm.name || !authForm.email || !authForm.password) {
+        setAuthError("Name, email ani password bharणe garjeche aahe.");
+        return;
       }
-    }, 1200);
+      if (authForm.password.length < 6) {
+        setAuthError("Password kimman 6 characters cha asava.");
+        return;
+      }
+    } else if (!authForm.email || !authForm.password) {
+      setAuthError("Email ani password bharणe garjeche aahe.");
+      return;
+    }
+
+    setAuthLoading(true);
+    try {
+      if (authMode === "signup") {
+        // register.php expects { name, email, phone, password }
+        await signup({
+          name: authForm.name,
+          email: authForm.email,
+          phone: authForm.phone,
+          password: authForm.password,
+        });
+      } else {
+        // login.php authenticates by email + password, not phone
+        await login(authForm.email, authForm.password);
+      }
+      setAuthForm({ name: "", phone: "", email: "", password: "" });
+    } catch (err) {
+      setAuthError(
+        err?.response?.data?.error || "Kahitari chukla, parat try kara."
+      );
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
   const handleLogout = () => {
     logout();
     setAuthMode("login");
     setActiveTab("orders");
+    setAuthError("");
     setAuthForm({ name: "", phone: "", email: "", password: "" });
+  };
+
+  const handleSettingsChange = (e) => {
+    setSettingsForm({ ...settingsForm, [e.target.name]: e.target.value });
+    setSettingsSuccess("");
+  };
+
+  const handleSettingsSave = async (e) => {
+    e.preventDefault();
+    setSettingsError("");
+    setSettingsSuccess("");
+
+    if (!settingsForm.name || !settingsForm.email) {
+      setSettingsError("Name ani email bharणe garjeche aahe.");
+      return;
+    }
+
+    setSettingsLoading(true);
+    try {
+      await updateUser(settingsForm);
+      setSettingsSuccess("Profile update zala!");
+    } catch (err) {
+      setSettingsError(err?.response?.data?.error || "Update nahi zala, parat try kara.");
+    } finally {
+      setSettingsLoading(false);
+    }
   };
 
   const fonts = (
@@ -208,14 +351,18 @@ const Profile = () => {
                 </div>
               )}
 
+              {/* FIX: login.php authenticates by email, not phone — Email
+                  now shows in BOTH modes. Phone is only collected at
+                  signup (it's stored on the account, but isn't a login
+                  credential), so it's no longer a required field on login. */}
               <div className="relative">
-                <Phone size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#b0a696]" />
+                <Mail size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#b0a696]" />
                 <input
-                  type="tel"
-                  name="phone"
+                  type="email"
+                  name="email"
                   required
-                  placeholder="Phone number"
-                  value={authForm.phone}
+                  placeholder="Email address"
+                  value={authForm.email}
                   onChange={handleAuthChange}
                   className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all"
                 />
@@ -223,13 +370,12 @@ const Profile = () => {
 
               {authMode === "signup" && (
                 <div className="relative">
-                  <Mail size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#b0a696]" />
+                  <Phone size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#b0a696]" />
                   <input
-                    type="email"
-                    name="email"
-                    required
-                    placeholder="Email address"
-                    value={authForm.email}
+                    type="tel"
+                    name="phone"
+                    placeholder="Phone number"
+                    value={authForm.phone}
                     onChange={handleAuthChange}
                     className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all"
                   />
@@ -262,6 +408,12 @@ const Profile = () => {
                   <button type="button" className="text-xs font-semibold text-[#2F7A38] hover:text-[#255f2c]">
                     Forgot password?
                   </button>
+                </div>
+              )}
+
+              {authError && (
+                <div className="text-sm text-[#B23A3A] bg-[#FBE7E7] rounded-lg p-3">
+                  {authError}
                 </div>
               )}
 
@@ -338,7 +490,10 @@ const Profile = () => {
             </p>
             {displayUser.joined && <p className="text-xs text-white/50 mt-1">Member since {displayUser.joined}</p>}
           </div>
-          <button className="relative flex items-center gap-1.5 border border-white/40 text-white hover:bg-white hover:text-[#6B1E1E] font-semibold text-sm px-4 py-2 rounded-full transition-colors">
+          <button
+            onClick={() => setActiveTab("settings")}
+            className="relative flex items-center gap-1.5 border border-white/40 text-white hover:bg-white hover:text-[#6B1E1E] font-semibold text-sm px-4 py-2 rounded-full transition-colors"
+          >
             <Edit2 size={15} /> Edit Profile
           </button>
         </div>
@@ -378,28 +533,70 @@ const Profile = () => {
             {activeTab === "orders" && (
               <div className="bg-white rounded-2xl border border-[#f2e8d8] shadow-sm p-6">
                 <h2 className="font-display text-lg font-semibold text-[#2B2420] mb-5">My Orders</h2>
-                <div className="space-y-4">
-                  {orders.map((o) => {
-                    const s = statusStyle(o.status);
-                    return (
-                      <div key={o.id} className="flex items-stretch gap-4 border border-[#f2e8d8] rounded-xl overflow-hidden">
-                        <div className={`w-1.5 shrink-0 ${s.bar}`} />
-                        <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between py-4 pr-4 gap-2">
-                          <div>
-                            <p className="font-semibold text-[#2B2B28]">{o.id} <span className="text-xs text-[#a89f92] font-normal">· {o.date}</span></p>
-                            <p className="text-sm text-[#8a8178]">{o.items}</p>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="font-semibold text-[#6B1E1E]">{o.total}</span>
-                            <span className={`text-xs font-semibold px-3 py-1 rounded-full ${s.chip}`}>
-                              {o.status}
-                            </span>
+
+                {ordersLoading && (
+                  <p className="text-sm text-[#8a8178] py-6 text-center">Loading orders...</p>
+                )}
+
+                {!ordersLoading && ordersError && (
+                  <p className="text-sm text-[#B23A3A] py-6 text-center">{ordersError}</p>
+                )}
+
+                {!ordersLoading && !ordersError && orders.length === 0 && (
+                  <div className="text-center py-8">
+                    <Package size={26} className="mx-auto text-[#C98A2B] mb-3" />
+                    <p className="text-sm text-[#8a8178]">No orders yet — go place your first one!</p>
+                  </div>
+                )}
+
+                {!ordersLoading && !ordersError && orders.length > 0 && (
+                  <div className="space-y-4">
+                    {orders.map((o) => {
+                      const s = statusStyle(o.status);
+                      const itemsSummary = (o.items || [])
+                        .map((i) => `${i.product_name}${i.size_label ? ` (${i.size_label})` : ""} x${i.qty}`)
+                        .join(", ");
+                      const dateLabel = o.created_at
+                        ? new Date(o.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+                        : "";
+
+                      return (
+                        <div key={o.id} className="flex items-stretch gap-4 border border-[#f2e8d8] rounded-xl overflow-hidden">
+                          <div className={`w-1.5 shrink-0 ${s.bar}`} />
+                          <div className="flex-1 flex flex-col gap-2 py-4 pr-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                              <div>
+                                <p className="font-semibold text-[#2B2B28]">
+                                  {o.order_number} <span className="text-xs text-[#a89f92] font-normal">· {dateLabel}</span>
+                                </p>
+                                <p className="text-sm text-[#8a8178]">{itemsSummary}</p>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="font-semibold text-[#6B1E1E]">₹{Number(o.total)}</span>
+                                <span className={`text-xs font-semibold px-3 py-1 rounded-full ${s.chip}`}>
+                                  {STATUS_LABELS[o.status] || o.status}
+                                </span>
+                              </div>
+                            </div>
+
+                            {canCancel(o.status) && (
+                              <div>
+                                <button
+                                  onClick={() => handleCancelOrder(o)}
+                                  disabled={cancellingId === o.id}
+                                  className="flex items-center gap-1.5 text-xs font-semibold text-[#B23A3A] hover:text-[#8a2b2b] disabled:opacity-60"
+                                >
+                                  <XIcon size={13} />
+                                  {cancellingId === o.id ? "Cancelling..." : "Cancel Order"}
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
@@ -434,23 +631,100 @@ const Profile = () => {
             )}
 
             {activeTab === "wishlist" && (
-              <div className="bg-white rounded-2xl border border-[#f2e8d8] shadow-sm p-10 text-center">
-                <Heart size={28} className="mx-auto text-[#C98A2B] mb-3" />
-                <p className="text-sm text-[#8a8178]">Go to the Wishlist page to view saved items.</p>
+              <div className="bg-white rounded-2xl border border-[#f2e8d8] shadow-sm p-6">
+                <h2 className="font-display text-lg font-semibold text-[#2B2420] mb-5">My Wishlist</h2>
+
+                {wishlist.length === 0 ? (
+                  <div className="text-center py-10">
+                    <Heart size={28} className="mx-auto text-[#C98A2B] mb-3" />
+                    <p className="text-sm text-[#8a8178]">
+                      No items saved yet — tap the heart icon on any product to add it here.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {wishlist.map((item) => (
+                      <div
+                        key={item.id}
+                        className="border border-[#f2e8d8] rounded-2xl overflow-hidden flex flex-col"
+                      >
+                        <div className="bg-[#FBF3E7] h-36 flex items-center justify-center p-4">
+                          <img
+                            src={item.image_url || item.image}
+                            alt={item.name}
+                            className="h-full object-contain"
+                          />
+                        </div>
+                        <div className="p-4 flex flex-col flex-1">
+                          <h3 className="font-semibold text-[#2B2B28] text-sm line-clamp-1">{item.name}</h3>
+                          <p className="text-[#4D9F38] font-bold mt-1">₹{item.price}</p>
+
+                          <div className="mt-auto pt-3 flex gap-2">
+                            <button
+                              onClick={() => addToCart(item)}
+                              className="flex-1 flex items-center justify-center gap-1.5 bg-[#4D9F38] hover:bg-[#3d812e] text-white text-xs font-semibold py-2 rounded-full transition-colors"
+                            >
+                              <ShoppingCart size={13} />
+                              {isInCart(item.id) ? "In Cart" : "Add"}
+                            </button>
+                            <button
+                              onClick={() => removeFromWishlist(item.id)}
+                              aria-label="Remove from wishlist"
+                              className="w-9 h-9 shrink-0 flex items-center justify-center rounded-full bg-[#FBE7E7] text-[#B23A3A] hover:bg-[#B23A3A] hover:text-white transition-colors"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === "settings" && (
               <div className="bg-white rounded-2xl border border-[#f2e8d8] shadow-sm p-6">
                 <h2 className="font-display text-lg font-semibold text-[#2B2420] mb-5">Account Settings</h2>
-                <div className="space-y-4 max-w-md">
-                  <input placeholder="Full Name" defaultValue={displayUser.name} className="w-full px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all" />
-                  <input placeholder="Phone" defaultValue={displayUser.phone} className="w-full px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all" />
-                  <input placeholder="Email" defaultValue={displayUser.email} className="w-full px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all" />
-                  <button className="bg-[#2F7A38] hover:bg-[#255f2c] text-white font-semibold px-6 py-2.5 rounded-full transition-colors">
-                    Save Changes
+                <form onSubmit={handleSettingsSave} className="space-y-4 max-w-md">
+                  <input
+                    name="name"
+                    placeholder="Full Name"
+                    value={settingsForm.name}
+                    onChange={handleSettingsChange}
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all"
+                  />
+                  <input
+                    name="phone"
+                    placeholder="Phone"
+                    value={settingsForm.phone}
+                    onChange={handleSettingsChange}
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all"
+                  />
+                  <input
+                    name="email"
+                    type="email"
+                    placeholder="Email"
+                    value={settingsForm.email}
+                    onChange={handleSettingsChange}
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#ecdfc9] bg-[#FDF8EF] text-sm focus:border-[#2F7A38] focus:ring-4 focus:ring-[#2F7A38]/10 outline-none transition-all"
+                  />
+
+                  {settingsError && (
+                    <div className="text-sm text-[#B23A3A] bg-[#FBE7E7] rounded-lg p-3">{settingsError}</div>
+                  )}
+                  {settingsSuccess && (
+                    <div className="text-sm text-[#2F7A38] bg-[#E4F3E1] rounded-lg p-3">{settingsSuccess}</div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={settingsLoading}
+                    className="bg-[#2F7A38] hover:bg-[#255f2c] text-white font-semibold px-6 py-2.5 rounded-full transition-colors disabled:opacity-70"
+                  >
+                    {settingsLoading ? "Saving..." : "Save Changes"}
                   </button>
-                </div>
+                </form>
               </div>
             )}
           </div>

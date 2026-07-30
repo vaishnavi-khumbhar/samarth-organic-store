@@ -1,15 +1,25 @@
 import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, Heart, Eye } from "lucide-react";
 
-import { products } from "../../data/products";
+import { useProducts } from "../../hooks/useProducts";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 
-const RelatedProducts = () => {
+// FIX: used to `import { products } from "../../data/products"` and just
+// slice the first 4 dummy entries — never the current product's own
+// category, and never anything from the real database. Now fetches the
+// live catalog (optionally filtered by `category`) and excludes the
+// product currently being viewed.
+const RelatedProducts = ({ category, excludeId } = {}) => {
   const navigate = useNavigate();
+  const { products } = useProducts(category);
 
   const { addToCart, isInCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
+
+  const related = products.filter((p) => p.id !== excludeId).slice(0, 4);
+
+  if (related.length === 0) return null;
 
   return (
 <section className="max-w-7xl mx-auto px-4 -mt-10 sm:-mt-4 pb-10">
@@ -36,10 +46,11 @@ const RelatedProducts = () => {
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
 
-        {products.slice(0, 4).map((item) => {
+        {related.map((item) => {
 
           const wished = isInWishlist(item.id);
           const added = isInCart(item.id);
+          const imgSrc = item.image_url || item.image;
 
           return (
 
@@ -81,7 +92,7 @@ const RelatedProducts = () => {
                 <div className="bg-gradient-to-b from-[#FBF6EC] to-white h-40 sm:h-56 flex justify-center items-center overflow-hidden">
 
                   <img
-                    src={item.image}
+                    src={imgSrc}
                     alt={item.name}
                     className="h-32 sm:h-44 lg:h-48 object-contain group-hover:scale-110 transition duration-500"
                   />
@@ -112,7 +123,7 @@ const RelatedProducts = () => {
                   </div>
 
                   <p className="text-[#4D9F38] font-bold text-lg sm:text-xl mt-2">
-                    {item.price}
+                    ₹{item.price}
                   </p>
 
                 </div>

@@ -29,7 +29,7 @@ import {
 
 import { SiTelegram } from "react-icons/si";
 
-import { products } from "../data/products";
+import { fetchProductBySlug } from "../utils/api";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import RelatedProducts from "../components/RelatedProducts/RelatedProducts";
@@ -42,18 +42,54 @@ const toNumber = (val) => {
 };
 
 const ProductDetails = () => {
-  const { id } = useParams();
-  const product = products.find((p) => p.slug === id);
+  const { id } = useParams(); // this is actually the product SLUG (route is /product/:id)
   const navigate = useNavigate();
 
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
 
+  // FIX: this page used to do
+  //   import { products } from "../data/products";
+  //   const product = products.find((p) => p.slug === id);
+  // — a hardcoded dummy array. Any product added/edited in the admin
+  // panel would never be found here, always landing on "Product not
+  // found". Now the real product is fetched from
+  // GET /api/products/show.php?slug=... on the PHP backend.
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setNotFound(false);
+    setProduct(null);
+
+    fetchProductBySlug(id)
+      .then((res) => {
+        if (cancelled) return;
+        const found = res.data?.product || null;
+        if (found) setProduct(found);
+        else setNotFound(true);
+      })
+      .catch(() => {
+        // show.php responds 404 + { error: ... } when the slug doesn't
+        // exist or the product is inactive — axios treats that as an error
+        if (!cancelled) setNotFound(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
   // ---- Build the size options this product actually has ----
-  // If product.sizes exists (new products from the PDF), use those real
-  // label/price/mrp combos. Otherwise fall back to the old generic weight
-  // list with the product's single price/mrp — old products keep working
-  // exactly as before, no breakage.
+  // If product.sizes exists (variants added in the admin panel), use those
+  // real label/price/mrp combos. Otherwise fall back to the generic weight
+  // list with the product's single price/mrp.
   const sizeOptions = product?.sizes?.length
     ? product.sizes
     : DEFAULT_WEIGHTS.map((label) => ({
@@ -100,7 +136,15 @@ const ProductDetails = () => {
     setQty(1);
   }, [product]);
 
-  if (!product) {
+  if (loading) {
+    return (
+      <section className="max-w-3xl mx-auto px-5 py-24 text-center text-[#8a8178]">
+        Loading product...
+      </section>
+    );
+  }
+
+  if (notFound || !product) {
     return (
       <section className="max-w-3xl mx-auto px-5 py-24 text-center">
         <h1 className="text-2xl font-bold text-[#7A2418] mb-3">Product not found</h1>
@@ -372,7 +416,7 @@ const ProductDetails = () => {
           {/* Right column */}
           <div>
             <span className="inline-block bg-[#F5B800]/15 text-[#7A2418] px-3 py-1 rounded-full font-semibold text-[10px] tracking-[0.15em] uppercase mb-3">
-              Wood Pressed · Cold Extracted
+              {product.category || "Wood Pressed · Cold Extracted"}
             </span>
 
             <h1 className="text-3xl sm:text-3xl font-bold text-[#7A2418] leading-tight">
@@ -412,10 +456,11 @@ const ProductDetails = () => {
               </button>
             </div>
 
+            {/* Uses the real description from the admin panel when set, falls
+                back to a generic blurb for products that don't have one. */}
             <p className="text-sm text-[#6B6B6B] mt-3 leading-relaxed">
-              Wood pressed and cold extracted {product.name.toLowerCase()},
-              made using traditional methods to retain natural nutrients,
-              aroma and flavour — no chemicals, no preservatives.
+              {product.description ||
+                `Wood pressed and cold extracted ${product.name.toLowerCase()}, made using traditional methods to retain natural nutrients, aroma and flavour — no chemicals, no preservatives.`}
             </p>
 
             <div className="h-px bg-[#F0E4CE] my-6" />
@@ -579,7 +624,7 @@ const ProductDetails = () => {
           document.body
         )}
 
-      <RelatedProducts />
+      <RelatedProducts category={product.category} excludeId={product.id} />
     </>
   );
 };
