@@ -36,10 +36,10 @@ const products = [
 ];
 
 const socials = [
-  { icon: FaFacebook, href: "#", label: "Facebook" },
-  { icon: FaInstagram, href: "#", label: "Instagram" },
-  { icon: FaWhatsapp, href: "#", label: "WhatsApp" },
-  { icon: FaYoutube, href: "#", label: "YouTube" },
+  { icon: FaFacebook, href: "https://www.facebook.com/share/17oNXGNVHk/", label: "Facebook" },
+  { icon: FaInstagram, href: "https://www.instagram.com/samarth_organic_oil?igsh=bGRseHg1ZzVmeXl3", label: "Instagram" },
+  { icon: FaWhatsapp, href: "https://wa.me/917620006003", label: "WhatsApp" },
+  { icon: FaYoutube, href: "https://youtube.com/@samarthorganicoil?si=tlO482fehMHZfqA3", label: "YouTube" },
 ];
 
 const fadeUp = {
@@ -97,6 +97,8 @@ const Footer = () => {
                 <motion.a
                   key={i}
                   href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label={label}
                   whileHover={{ y: -4, scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
@@ -180,7 +182,7 @@ const Footer = () => {
             <div className="space-y-4 mt-6 w-full flex flex-col items-center lg:items-start">
               {[
                 { icon: Phone, text: "+91 7620006003", href: "tel:+917620006003" },
-                { icon: Mail, text: "samarthorganicoil@gmail.com", href: "mailto:samarthorganicoil@gmail.com" },
+                { icon: Mail, text: "samarthorganicoil01@gmail.com", href: "mailto:samarthorganicoil@gmail.com" },
                 { icon: MapPin, text: "Near School No. 1, Asha Naka Road, Urun-Islampur, Tal. Walwa, Dist. Sangli – 415409, Maharashtra", href: null },
               ].map(({ icon: Icon, text, href }, i) => {
                 const content = (

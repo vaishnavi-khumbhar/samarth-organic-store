@@ -5,7 +5,20 @@ import { NavLink } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
+import { useProducts } from "../../hooks/useProducts";
 import SearchBar from "../SearchBar/SearchBar";
+
+// Nicer display names for known categories — anything not listed here just
+// falls back to whatever the category is called in the database, so a
+// brand-new category still shows up immediately without needing a code change.
+const CATEGORY_TITLES = {
+  Oils: "Wood Pressed Oils",
+  "Hair Oils": "Hair Oils",
+  Jaggery: "Natural Jaggery",
+  Soap: "Handmade Soaps",
+  Honey: "Natural Honey",
+  Ghee: "Pure Ghee",
+};
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -16,6 +29,30 @@ const Navbar = () => {
 
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
+
+  // FIX: the Products dropdown used to be a hardcoded list of category ->
+  // product names baked into this file. Any product added in the admin
+  // panel never showed up here, and any product NOT in this hardcoded
+  // list would 404 (its link guessed a slug from the name instead of
+  // using the product's real slug). Now it's built from the live catalog,
+  // grouped by each product's real category, using each product's real
+  // slug — new products/categories appear here automatically.
+  const { products } = useProducts();
+
+  const megaMenuSections = products.reduce((sections, p) => {
+    if (!p.category) return sections;
+    let section = sections.find((s) => s.key === p.category);
+    if (!section) {
+      section = {
+        key: p.category,
+        title: CATEGORY_TITLES[p.category] || p.category,
+        items: [],
+      };
+      sections.push(section);
+    }
+    section.items.push({ name: p.name, slug: p.slug });
+    return sections;
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -31,25 +68,7 @@ const Navbar = () => {
   const navLinks = [
     { label: "Home", path: "/" },
     { label: "About Us", path: "/about" },
-    {
-      label: "Products",
-      path: "/products",
-      megaMenu: [
-        {
-          title: "Wood Pressed Oils",
-          items: [
-            "Groundnut Oil", "Sesame Oil", "Coconut Oil", "Sunflower Oil",
-            "Mustard Oil", "Flexseed Oil", "Almond Oil", "Walnut Oil",
-            "Safflower Oil", "Castor Oil",
-          ],
-        },
-        { title: "Hair Oils", items: ["Onion Hair Oil", "Curry Leaves Hair Oil"] },
-        { title: "Natural Jaggery", items: ["Jaggery Powder", "Jaggery Candy", "Liquid Jaggery", "Jaggery"] },
-        { title: "Handmade Soaps", items: ["Aloe Vera Soap", "Multani Mitti Soap", "Neem Soap", "De-tan Soap", "Charcoal Soap"] },
-        { title: "Natural Honey", items: ["Natural Tulsi Honey", "Forest Honey"] },
-        { title: "Pure Ghee", items: ["Gir Cow Ghee"] },
-      ],
-    },
+    { label: "Products", path: "/products", megaMenu: megaMenuSections },
     { label: "Contact Us", path: "/contact" },
   ];
 
@@ -123,26 +142,26 @@ const Navbar = () => {
                   </NavLink>
 
                   {/* Mega menu panel — multi-column, one per category */}
-                  {productsOpen && (
+                  {productsOpen && item.megaMenu.length > 0 && (
                     <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 z-50">
                       <div className="bg-white rounded-2xl shadow-xl shadow-black/10 border border-[#F0E4CE] p-6 grid grid-cols-3 gap-x-8 gap-y-5 w-[720px] max-w-[90vw]">
                         {item.megaMenu.map((section) => (
-                          <div key={section.title}>
+                          <div key={section.key}>
                             <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#7A2418] mb-2.5 pb-1.5 border-b border-[#F0E4CE]">
                               {section.title}
                             </h4>
                             <div className="flex flex-col gap-1.5">
                               {section.items.map((child) => (
                                 <NavLink
-                                  key={child}
-                                  to={`/product/${child.toLowerCase().replace(/\s+/g, "-")}`}
+                                  key={child.slug}
+                                  to={`/product/${child.slug}`}
                                   onClick={() => setProductsOpen(false)}
                                   className="group/item flex items-center gap-2 text-sm text-[#2B2B28] hover:text-[#7A2418] transition-colors"
                                 >
                                   <span className="w-5 h-5 shrink-0 flex items-center justify-center rounded-full bg-[#FBF6EC] text-[#3C8C2E] group-hover/item:bg-[#7A2418] group-hover/item:text-white transition-colors">
                                     <Droplet size={10} />
                                   </span>
-                                  {child}
+                                  {child.name}
                                 </NavLink>
                               ))}
                             </div>
@@ -347,22 +366,22 @@ const Navbar = () => {
                         <div className="overflow-hidden">
                           <div className="flex flex-col gap-4 pl-2">
                             {item.megaMenu.map((section) => (
-                              <div key={section.title}>
+                              <div key={section.key}>
                                 <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#7A2418] mb-2">
                                   {section.title}
                                 </h4>
                                 <div className="flex flex-col gap-0.5">
                                   {section.items.map((child) => (
                                     <NavLink
-                                      key={child}
-                                      to={`/product/${child.toLowerCase().replace(/\s+/g, "-")}`}
+                                      key={child.slug}
+                                      to={`/product/${child.slug}`}
                                       onClick={() => setMenuOpen(false)}
                                       className="flex items-center gap-3 py-2 text-sm text-[#555] hover:text-[#7A2418]"
                                     >
                                       <span className="w-6 h-6 shrink-0 flex items-center justify-center rounded-full bg-[#FBF6EC] text-[#3C8C2E]">
                                         <Droplet size={11} />
                                       </span>
-                                      {child}
+                                      {child.name}
                                     </NavLink>
                                   ))}
                                 </div>

@@ -6,11 +6,9 @@ import ManufacturingProcess from "../components/ManufacturingProcess/Manufacturi
 import CTA from "../components/CTA/CTA";
 import { NavLink } from "react-router-dom";
 
-const aboutBanner =
-  "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=1600&q=80";
+import aboutBanner from "../assets/images/about/about-banner.jpg";
+import storyImage from "../assets/images/about/story.jpg";
 
-const storyImage =
-  "https://images.openai.com/static-rsc-4/hmbFMx1P66b04JJh4sLlyt2-8sm3zp4qxIK0tNrHQGKqtTCmFnrAaVbRYRTWBC9Wq61vP28OTuyyIYdxZTPBTzCWUriyD2UqCPSHqYVVrD8kuoxf8c9RlOHS5gwFaqUTtX1RwDM5_EsA5-8kpVSuch1Om-UbWuWfioLVaUDFngxrHwsbkN0ZD37XvYU3vBmO?purpose=fullsize";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },

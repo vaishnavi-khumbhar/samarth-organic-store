@@ -8,7 +8,6 @@ import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import { AuthProvider } from "./context/AuthContext";
 import { AddressProvider } from "./context/AddressContext";
-import LoginModal from "./components/LoginModal/LoginModal";
 
 
 import "./index.css";
@@ -20,7 +19,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <CartProvider>
           <WishlistProvider>
             <RouterProvider router={router} />
-            <LoginModal />
           </WishlistProvider>
         </CartProvider>
       </AddressProvider>

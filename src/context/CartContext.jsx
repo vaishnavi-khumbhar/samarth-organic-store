@@ -12,18 +12,23 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useAccountStorage("samarth_cart", []);
 
   const addToCart = (product) => {
+    // FIX: was hardcoded to 1 in both branches below, so whatever quantity
+    // was actually selected on the product page (`quantity` field) was
+    // silently thrown away — Add to Cart always added exactly 1.
+    const qtyToAdd = Math.max(1, Number(product.quantity) || 1);
+
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id);
 
       if (existing) {
         return prev.map((item) =>
           item.id === product.id
-            ? { ...item, qty: item.qty + 1 }
+            ? { ...item, qty: item.qty + qtyToAdd }
             : item
         );
       }
 
-      return [...prev, { ...product, qty: 1 }];
+      return [...prev, { ...product, qty: qtyToAdd }];
     });
   };
 

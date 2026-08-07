@@ -281,9 +281,9 @@ const ProductsPage = () => {
       )}
 
       {!loading && error && (
-        <p className="text-center py-16 text-[#B23A3A]">
-          Products load karta aale nahi: {error}
-        </p>
+       <p className="text-center py-16 text-red-500">
+  Failed to load products: {error}
+</p>
       )}
 
       {!loading && !error && filteredProducts.length === 0 && (

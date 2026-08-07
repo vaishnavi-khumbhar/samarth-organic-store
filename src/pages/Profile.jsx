@@ -113,7 +113,7 @@ const Profile = () => {
       })
       .catch((err) => {
         if (!cancelled) {
-          setOrdersError(err?.response?.data?.error || "Orders load nahi zale.");
+          setOrdersError(err?.response?.data?.error || "Failed to load orders.");
         }
       })
       .finally(() => {
@@ -160,8 +160,29 @@ const Profile = () => {
   // matches the guard on the backend (orders/cancel.php).
   const canCancel = (status) => !["delivered", "cancelled"].includes(status);
 
+  // FIX: order cards only ever showed the fulfillment `status` (Confirmed,
+  // Pending, etc) — never whether the payment itself actually went
+  // through. A customer who paid online had no visible confirmation of
+  // that; a genuinely-still-pending online payment looked identical to a
+  // paid one. This badge shows the real payment_status for both COD and
+  // online orders.
+  const paymentBadge = (o) => {
+    if (o.payment_method === "cod") {
+      return o.payment_status === "paid"
+        ? { label: "Paid (COD)", chip: "bg-[#E4F3E1] text-[#2F7A38]" }
+        : { label: "Pay on Delivery", chip: "bg-[#FBEAD0] text-[#8A4B12]" };
+    }
+    if (o.payment_status === "paid") {
+      return { label: "Paid", chip: "bg-[#E4F3E1] text-[#2F7A38]" };
+    }
+    if (o.payment_status === "failed") {
+      return { label: "Payment Failed", chip: "bg-[#FBE7E7] text-[#B23A3A]" };
+    }
+    return { label: "Payment Pending", chip: "bg-[#FBEAD0] text-[#8A4B12]" };
+  };
+
   const handleCancelOrder = async (order) => {
-    if (!window.confirm(`Order ${order.order_number} cancel karायचा aahe ka?`)) {
+    if (!window.confirm(`Cancel order ${order.order_number}?`)) {
       return;
     }
     setCancellingId(order.id);
@@ -171,7 +192,7 @@ const Profile = () => {
         prev.map((o) => (o.id === order.id ? { ...o, status: "cancelled" } : o))
       );
     } catch (err) {
-      alert(err?.response?.data?.error || "Order cancel nahi zala, parat try kara.");
+      alert(err?.response?.data?.error || "Order cancellation failed, please try again.");
     } finally {
       setCancellingId(null);
     }
@@ -187,7 +208,7 @@ const Profile = () => {
 
     if (authMode === "signup") {
       if (!authForm.name || !authForm.email || !authForm.password) {
-        setAuthError("Name, email ani password bharणe garjeche aahe.");
+        setAuthError("Name, email, and password are required.");
         return;
       }
       if (authForm.password.length < 6) {
@@ -195,7 +216,7 @@ const Profile = () => {
         return;
       }
     } else if (!authForm.email || !authForm.password) {
-      setAuthError("Email ani password bharणe garjeche aahe.");
+      setAuthError("Email and password are required.");
       return;
     }
 
@@ -242,16 +263,16 @@ const Profile = () => {
     setSettingsSuccess("");
 
     if (!settingsForm.name || !settingsForm.email) {
-      setSettingsError("Name ani email bharणe garjeche aahe.");
+      setSettingsError("Name and email are required.");
       return;
     }
 
     setSettingsLoading(true);
     try {
       await updateUser(settingsForm);
-      setSettingsSuccess("Profile update zala!");
+      setSettingsSuccess("Profile updated!");
     } catch (err) {
-      setSettingsError(err?.response?.data?.error || "Update nahi zala, parat try kara.");
+      setSettingsError(err?.response?.data?.error || "Update failed, please try again.");
     } finally {
       setSettingsLoading(false);
     }
@@ -553,6 +574,7 @@ const Profile = () => {
                   <div className="space-y-4">
                     {orders.map((o) => {
                       const s = statusStyle(o.status);
+                      const pay = paymentBadge(o);
                       const itemsSummary = (o.items || [])
                         .map((i) => `${i.product_name}${i.size_label ? ` (${i.size_label})` : ""} x${i.qty}`)
                         .join(", ");
@@ -571,8 +593,11 @@ const Profile = () => {
                                 </p>
                                 <p className="text-sm text-[#8a8178]">{itemsSummary}</p>
                               </div>
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2 flex-wrap justify-end">
                                 <span className="font-semibold text-[#6B1E1E]">₹{Number(o.total)}</span>
+                                <span className={`text-xs font-semibold px-3 py-1 rounded-full ${pay.chip}`}>
+                                  {pay.label}
+                                </span>
                                 <span className={`text-xs font-semibold px-3 py-1 rounded-full ${s.chip}`}>
                                   {STATUS_LABELS[o.status] || o.status}
                                 </span>
@@ -580,7 +605,7 @@ const Profile = () => {
                             </div>
 
                             {canCancel(o.status) && (
-                              <div>
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <button
                                   onClick={() => handleCancelOrder(o)}
                                   disabled={cancellingId === o.id}
@@ -589,6 +614,11 @@ const Profile = () => {
                                   <XIcon size={13} />
                                   {cancellingId === o.id ? "Cancelling..." : "Cancel Order"}
                                 </button>
+                                {o.payment_method === "online" && o.payment_status === "paid" && (
+                                  <span className="text-[11px] text-[#a89f92]">
+                                    (already paid — refund handled manually)
+                                  </span>
+                                )}
                               </div>
                             )}
                           </div>

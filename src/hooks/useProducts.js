@@ -27,7 +27,7 @@ export const useProducts = (categoryName) => {
       .catch((err) => {
         if (!cancelled) {
           setError(
-            err?.response?.data?.error || err.message || "Products load nahi zale."
+            err?.response?.data?.error || err.message || "Failed to load products: "
           );
         }
       })

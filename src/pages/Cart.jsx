@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Tag,
   MapPin,
@@ -9,19 +10,12 @@ import {
   ShoppingBag,
   Lock,
   ShieldCheck,
-  X,
-  CheckCircle2,
-  Smartphone,
-  CreditCard,
-  Wallet,
   Truck,
 } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useAddress } from "../context/AddressContext";
 import AddressForm from "../components/AddressForm/AddressForm";
-
-import { createRazorpayOrder, createOrder } from "../utils/api";
 
 // Safely convert anything (string like "₹399", number, undefined, null) into a plain number
 const toNum = (val) => {
@@ -33,8 +27,11 @@ const toNum = (val) => {
 // product data madhe kadhi `img` kadhi `image` field asto, donhi try karto
 const getImg = (item) => item.img || item.image || "";
 
+const INSTRUCTIONS_MAX = 100;
+
 const Cart = () => {
-  const { cart, removeFromCart, updateCartQty, clearCart } = useCart();
+  const navigate = useNavigate();
+  const { cart, removeFromCart, updateCartQty } = useCart();
   const { requireLogin } = useAuth();
   const { addresses, selectedAddressId, setSelectedAddressId } = useAddress();
 
@@ -43,9 +40,12 @@ const Cart = () => {
   const [discountPct, setDiscountPct] = useState(0);
   const [deliveryType, setDeliveryType] = useState("pickup"); // "address" | "pickup"
   const [showAddressForm, setShowAddressForm] = useState(false);
-  const [showPayment, setShowPayment] = useState(false);
-  const [payMethod, setPayMethod] = useState("upi");
-  const [payStep, setPayStep] = useState("select"); // select | processing | success
+
+  // Order instructions box: closed by default, "Add" opens the textarea,
+  // "Save Instructions" saves + collapses it back down.
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [instructions, setInstructions] = useState("");
+  const [savedInstructions, setSavedInstructions] = useState("");
 
   const applyCoupon = () => {
     if (coupon.trim().toUpperCase() === "SAMARTH10") {
@@ -54,6 +54,16 @@ const Cart = () => {
     } else {
       setDiscountPct(0);
       setCouponMsg("Invalid coupon code");
+    }
+  };
+
+  const handleToggleInstructions = () => {
+    if (showInstructions) {
+      // Save button pressed -> persist the text and collapse
+      setSavedInstructions(instructions.trim());
+      setShowInstructions(false);
+    } else {
+      setShowInstructions(true);
     }
   };
 
@@ -73,29 +83,15 @@ const Cart = () => {
     });
   };
 
-  const openPayment = () => {
-    setPayStep("select");
-    setShowPayment(true);
-  };
-
-  // "Pay Now" -> login required first
+  // FIX: this used to open a local modal whose "Pay" button just faked a
+  // setTimeout("processing" -> "success") — no order was ever created, no
+  // real payment ever happened, yet the cart cleared as if one had. The
+  // real, fully-wired flow (creates the order, and for online payment
+  // opens the actual Razorpay checkout + verifies it server-side) already
+  // exists on the /checkout page — this just sends you there instead of
+  // faking it locally.
   const handlePayNow = () => {
-    requireLogin(openPayment);
-  };
-
-  const startPayment = () => {
-    setPayStep("processing");
-    setTimeout(() => setPayStep("success"), 1800);
-  };
-
-  const closePayment = () => {
-    setShowPayment(false);
-    if (payStep === "success") {
-      clearCart();
-      setCoupon("");
-      setCouponMsg("");
-      setDiscountPct(0);
-    }
+    requireLogin(() => navigate("/checkout"));
   };
 
   return (
@@ -271,12 +267,40 @@ const Cart = () => {
               )}
 
               {/* Order instructions */}
-              <div className="bg-white rounded-2xl border border-[#F0E4CE] shadow-sm p-5 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FileText size={17} className="text-[#3C8C2E]" />
-                  <span className="font-bold text-[#2B2B28]">Order instructions</span>
+              <div className="bg-white rounded-2xl border border-[#F0E4CE] shadow-sm p-5">
+                <div className={`flex items-center justify-between ${showInstructions ? "mb-3" : ""}`}>
+                  <div className="flex items-center gap-2">
+                    <FileText size={17} className="text-[#3C8C2E]" />
+                    <span className="font-bold text-[#2B2B28]">Order instructions</span>
+                  </div>
+                  <button
+                    onClick={handleToggleInstructions}
+                    className="text-[#7A2418] font-bold text-sm hover:text-[#5C160D] transition-colors"
+                  >
+                    {showInstructions ? "Save Instructions" : savedInstructions ? "Edit" : "Add"}
+                  </button>
                 </div>
-                <button className="text-[#7A2418] font-bold text-sm hover:text-[#5C160D] transition-colors">Add</button>
+
+                {showInstructions && (
+                  <div className="relative">
+                    <textarea
+                      autoFocus
+                      value={instructions}
+                      onChange={(e) => setInstructions(e.target.value.slice(0, INSTRUCTIONS_MAX))}
+                      maxLength={INSTRUCTIONS_MAX}
+                      rows={3}
+                      placeholder="Type order instructions here"
+                      className="w-full resize-none border border-[#F0E4CE] rounded-xl p-3 pb-6 text-sm text-[#2B2B28] placeholder:text-[#b0a696] focus:border-[#7A2418] outline-none"
+                    />
+                    <span className="absolute bottom-2 right-3 text-[11px] text-[#a89f92]">
+                      {instructions.length}/{INSTRUCTIONS_MAX}
+                    </span>
+                  </div>
+                )}
+
+                {!showInstructions && savedInstructions && (
+                  <p className="text-sm text-[#5b5750] mt-2">{savedInstructions}</p>
+                )}
               </div>
             </div>
 
@@ -375,90 +399,6 @@ const Cart = () => {
           </div>
         )}
       </div>
-
-      {/* PAYMENT MODAL */}
-      {showPayment && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-          <div className="bg-white rounded-3xl w-full max-w-md p-6 md:p-7 relative shadow-2xl max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={closePayment}
-              aria-label="Close"
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#FBF6EC] text-[#7A2418] flex items-center justify-center hover:bg-[#7A2418] hover:text-white transition-colors"
-            >
-              <X size={16} />
-            </button>
-
-            {payStep === "select" && (
-              <>
-                <h2 className="text-xl font-bold text-[#7A2418] mb-1">Complete payment</h2>
-                <p className="text-sm text-[#8a8178] mb-6">Amount payable: <span className="font-bold text-[#2B2B28]">₹{grandTotal.toFixed(2)}</span></p>
-
-                <div className="space-y-3 mb-6">
-                  {[
-                    { id: "upi", label: "UPI", sub: "Pay via Google Pay, PhonePe, Paytm", icon: Smartphone },
-                    { id: "card", label: "Credit / Debit Card", sub: "Visa, Mastercard, RuPay", icon: CreditCard },
-                    { id: "cod", label: "Cash on Delivery", sub: "Pay when your order arrives", icon: Wallet },
-                  ].map(({ id, label, sub, icon: Icon }) => (
-                    <button
-                      key={id}
-                      onClick={() => setPayMethod(id)}
-                      className={`w-full flex items-center gap-3 p-4 rounded-2xl border transition-colors text-left ${
-                        payMethod === id ? "border-[#7A2418] bg-[#FBF6EC]" : "border-[#F0E4CE]"
-                      }`}
-                    >
-                      <span className="w-10 h-10 rounded-full bg-white border border-[#F0E4CE] flex items-center justify-center text-[#7A2418] shrink-0">
-                        <Icon size={18} />
-                      </span>
-                      <span className="flex-1">
-                        <span className="block font-semibold text-sm text-[#2B2B28]">{label}</span>
-                        <span className="block text-xs text-[#8a8178]">{sub}</span>
-                      </span>
-                      <span
-                        className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                          payMethod === id ? "border-[#7A2418]" : "border-[#ccc0ad]"
-                        }`}
-                      >
-                        {payMethod === id && <span className="w-2 h-2 rounded-full bg-[#7A2418]" />}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  onClick={startPayment}
-                  className="w-full bg-gradient-to-r from-[#F0821D] to-[#e05a12] hover:brightness-105 text-white font-bold py-3.5 rounded-full transition-all"
-                >
-                  Pay ₹{grandTotal.toFixed(2)}
-                </button>
-              </>
-            )}
-
-            {payStep === "processing" && (
-              <div className="py-10 text-center">
-                <div className="w-12 h-12 mx-auto mb-5 border-4 border-[#F0E4CE] border-t-[#7A2418] rounded-full animate-spin" />
-                <h2 className="font-bold text-lg text-[#2B2B28] mb-1">Processing payment...</h2>
-                <p className="text-sm text-[#8a8178]">Please don't close this window</p>
-              </div>
-            )}
-
-            {payStep === "success" && (
-              <div className="py-8 text-center">
-                <CheckCircle2 size={52} className="mx-auto text-[#3C8C2E] mb-4" />
-                <h2 className="font-bold text-xl text-[#2B2B28] mb-1">Payment successful</h2>
-                <p className="text-sm text-[#8a8178] mb-6">
-                  ₹{grandTotal.toFixed(2)} paid via {payMethod === "upi" ? "UPI" : payMethod === "card" ? "Card" : "Cash on Delivery"}
-                </p>
-                <button
-                  onClick={closePayment}
-                  className="w-full bg-[#3C8C2E] hover:bg-[#316f26] text-white font-bold py-3 rounded-full transition-colors"
-                >
-                  Done
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </section>
   );
 };

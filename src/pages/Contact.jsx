@@ -300,7 +300,7 @@ const Contact = () => {
 
   {/* Facebook */}
   <a
-    href="https://www.facebook.com/"
+    href="https://www.facebook.com/share/17oNXGNVHk/"
     target="_blank"
     rel="noopener noreferrer"
     className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/10 hover:bg-[#1877F2] flex items-center justify-center transition-all duration-300 hover:scale-110"
@@ -310,7 +310,7 @@ const Contact = () => {
 
   {/* Instagram */}
   <a
-    href="https://www.instagram.com/"
+    href="https://www.instagram.com/samarth_organic_oil?igsh=bGRseHg1ZzVmeXl3"
     target="_blank"
     rel="noopener noreferrer"
     className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/10 hover:bg-gradient-to-r hover:from-[#F58529] hover:via-[#DD2A7B] hover:to-[#8134AF] flex items-center justify-center transition-all duration-300 hover:scale-110"
@@ -320,7 +320,7 @@ const Contact = () => {
 
   {/* YouTube */}
   <a
-    href="https://www.youtube.com/"
+    href="https://youtube.com/@samarthorganicoil?si=tlO482fehMHZfqA3"
     target="_blank"
     rel="noopener noreferrer"
     className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/10 hover:bg-[#FF0000] flex items-center justify-center transition-all duration-300 hover:scale-110"
@@ -330,7 +330,7 @@ const Contact = () => {
 
   {/* WhatsApp */}
   <a
-    href="https://wa.me/919876543210"
+    href="https://wa.me/917620006003"
     target="_blank"
     rel="noopener noreferrer"
     className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/10 hover:bg-[#25D366] flex items-center justify-center transition-all duration-300 hover:scale-110"
@@ -348,7 +348,7 @@ const Contact = () => {
         <div className="rounded-3xl overflow-hidden border border-[#f2e8d8] shadow-sm h-[380px]">
           <iframe
             title="Samarth Organic Oil Location"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d60383.5!2d73.8567!3d18.5204!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTjCsDMxJzEzLjQiTiA3M8KwNTEnMjQuMSJF!5e0!3m2!1sen!2sin!4v1700000000000"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3814.502671476077!2d74.269352!3d17.0480476!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc17544b9d0a7d3%3A0x6c109c4074c7068a!2sSamarth%20Organic%20Oil!5e0!3m2!1sen!2sin!4v1785828364645!5m2!1sen!2sin" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"
             width="100%"
             height="100%"
             style={{ border: 0 }}

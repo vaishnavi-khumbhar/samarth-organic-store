@@ -5,11 +5,11 @@ import ProductFilter from "../components/ProductFilter/ProductFilter";
 import FeaturedProducts from "../components/FeaturedProducts/FeaturedProducts";
 import Testimonials from "../components/Testimonials/Testimonials";
 import CTA from "../components/CTA/CTA";
+import aboutBanner from "../assets/images/about/about-banner.jpg";
+
 
 import { products } from "../data/products";
 
-const productsBanner =
-  "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=1600&q=80";
 
 const productChips = [
   "Wood Pressed Oils",
@@ -127,7 +127,7 @@ const Products = () => {
             initial={{ scale: 1.15 }}
             animate={{ scale: 1 }}
             transition={{ duration: 1.4 }}
-            src={productsBanner}
+            src={aboutBanner}
             alt="Organic Oil Products"
             loading="eager"
             className="w-full h-full object-cover"

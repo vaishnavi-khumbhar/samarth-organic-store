@@ -173,7 +173,17 @@ const ProductDetails = () => {
       ...product,
       quantity: qty,
       weight: selectedSize.label,
+      // FIX: this used to be missing. Checkout.jsx builds the order with
+      // `size_label: item.selectedSize?.label`, but nothing here ever set
+      // a `selectedSize` field — only `weight` — so size_label was ALWAYS
+      // sent as null, for every size, on every order (COD or online). The
+      // backend then always fell back to the product's base price,
+      // completely ignoring which size the customer actually picked. This
+      // also carries the size's own MRP, so the cart's "% off" badge
+      // compares against the right MRP instead of the base product's.
+      selectedSize: { label: selectedSize.label, price: priceNum, mrp: mrpNum },
       price: priceNum, // the actual selected size's price, not the base product price
+      mrp: mrpNum,
     });
     navigate("/cart");
   };
@@ -183,7 +193,9 @@ const ProductDetails = () => {
       ...product,
       quantity: qty,
       weight: selectedSize.label,
+      selectedSize: { label: selectedSize.label, price: priceNum, mrp: mrpNum },
       price: priceNum,
+      mrp: mrpNum,
     });
     navigate("/cart");
   };
